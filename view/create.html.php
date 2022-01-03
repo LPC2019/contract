@@ -66,11 +66,13 @@
             <th style="vertical-align:top"><?php echo "Approval List";?></th>
             <td colspan='2'>
             <table>
+
             <?php
+            $numArray=array(1,2,3,4,5,6);
             $itemRow = "
               <tr >
               <td>".html::select('ap[]', $poUsers, '', "class='form-control chosen'")."</td>
-              <td><input name='order[]'id='order[]' type='number' min='1' step='1' class='form-control' ></td>
+              <td>".html::select("order[]",$numArray,'1','class="form-control chosen"')."</td>
               <td><input type='checkbox' id='sign[]' name='sign[]' value='true'>
               <td class='c-actions'>
                 <a href='javascript:void(0)' class='btn btn-link' onclick='addItem(this)'><i class='icon-plus'></i></a>
