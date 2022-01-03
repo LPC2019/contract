@@ -856,7 +856,6 @@ class contract extends control
         $this->loadModel('action')->create('invoice', $invoiceID, 'submitted');
         echo "success";
     }
-<<<<<<< HEAD
         
         /**
      * Delete a contract.
@@ -909,8 +908,6 @@ class contract extends control
         $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();
         echo "success";
     }
-=======
->>>>>>> parent of d9057cb (Update control.php)
 
     public function approve($invoiceID ='0',$act="false")
     {
