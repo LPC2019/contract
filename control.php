@@ -512,29 +512,7 @@ class contract extends control
         $this->display();
     }
 
-    /**
-     * Delete a product.
-     *
-     * @param  int    $productID
-     * @param  string $confirm    yes|no
-     * @access public
-     * @return void
-     */
-    public function delete($productID, $confirm = 'no')
-    {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->product->confirmDelete, $this->createLink('product', 'delete', "productID=$productID&confirm=yes")));
-        }
-        else
-        {
-            $this->product->delete(TABLE_PRODUCT, $productID);
-            $this->dao->update(TABLE_DOCLIB)->set('deleted')->eq(1)->where('product')->eq($productID)->exec();
-            $this->session->set('product', '');     // 清除session。
-            $this->executeHooks($productID);
-            die(js::locate($this->createLink('product', 'browse'), 'parent'));
-        }
-    }
+
 
     /**
      * Road map of a product.
@@ -878,6 +856,61 @@ class contract extends control
         $this->loadModel('action')->create('invoice', $invoiceID, 'submitted');
         echo "success";
     }
+<<<<<<< HEAD
+        
+        /**
+     * Delete a contract.
+     *
+     * @param  int   
+     * @access public
+     * @return void
+     */
+    public function delete($contractID)
+    {
+        $contract=$this->dao->select('*')->from('zt_contract')->where('id')->eq('contractID')->fetch();
+        if($contract->contractManager!=$this->app->user->account || $contract->createdBy!=$this->app->user->account){
+            echo js::alert("you do not have the right to delete this contact");
+            die("</br>fail");
+        }
+        if($contract->status!='normal'){
+           //echo js::alert("This invoice can not be delete");
+           // echo "<script>history.back()</script>";
+           //die();
+        }
+        $contract->deleted="1";
+        $contract->lastEdit=helper::now();
+        $this->dao->update('zt_contract')->data($contract)->where('id')->eq($contractID)->exec();
+        echo "success";
+    }
+    /**
+     * delete the Invoice
+     * @param  int   
+     * @access public
+     * @return void
+     */
+    public function deleteInvoice($invoiceID ='0')//soft delete invoice(keep files)
+    {   
+
+        $invoice=$this->contract->getByID($invoiceID);
+        if($invoice->status!='panding'){
+            echo js::alert("This invoice can not be delete");
+           // echo "<script>history.back()</script>";
+            die();
+        }
+        $contract=$this->dao->select('*')->from('zt_contract')->where('id')->eq($invoice->contractID)->fetch();
+        if($this->app->user->account != $contract->appointedParty){//check owner
+            echo js::alert("you can not delete this invoice");
+           // echo "<script>history.back()</script>";
+            die();
+        }
+
+        $invoice->deleted="1";
+        $invoice->lastEdit=helper::now();
+        $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();
+        echo "success";
+    }
+=======
+>>>>>>> parent of d9057cb (Update control.php)
 
     public function approve($invoiceID ='0',$act="false")
     {
