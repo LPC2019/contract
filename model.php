@@ -462,7 +462,7 @@ class contractModel extends model
                 $details['invoiceID']=$invoiceID;
                 $details['item']=$_POST['item'][$i];
                 $details['price']=isset($_POST['price'][$i])?$_POST['price'][$i]:'0';
-                $this->dao->insert("zt_invoiceDetails")->data($details)->exec();
+                $this->dao->insert("zt_invoicedetails")->data($details)->exec();
             }
         }
         $this->loadModel('file')->updateObjectID($this->post->uid, $invoiceID, 'invoice');
@@ -1186,7 +1186,6 @@ class contractModel extends model
             ->fetch();
     }
     public function submit($invoiceID,$contractID){
-      
         $approval=$this->dao->select("*")->from("zt_approval")->where('objectType')->eq('contract')->andWhere('objectID')->eq($contractID."order by  `order`")->fetchALL();
         $userList=array();
         foreach($approval as $ap){
@@ -1196,13 +1195,12 @@ class contractModel extends model
             $object['sign']=$ap->sign;
             $object['order']=$ap->order;
             if($ap->order=='1'){
-                array_push($userList,$ap->user);
+               array_push($userList,$ap->user);
             }
             $object['status']=$ap->status;
             $this->dao->insert('zt_approval')->data($object)->exec();
         }
-        var_dump($approval);
-        sendApproveNote($invoiceID,$userList);
+        $this->sendApproveNote($invoiceID,$userList);
 
 
     }
@@ -1214,7 +1212,7 @@ class contractModel extends model
         $this->loadModel('mail');
         $invoice  = $this->getById($invoiceID);
         //$users = $this->loadModel('user')->getPairs('noletter');
-        // Get mail content. 
+        // Get mail content.
         $oldcwd     = getcwd(); // system call
 
         $modulePath = $this->app->getModulePath($appName = '', 'contract');
@@ -1240,9 +1238,12 @@ class contractModel extends model
         list($toList, $ccList) = $sendUsers;
         */
         $subject = " invoice #$invoice->id is ready for authorization";
-
         // Send emails. 
-        $this->mail->send($userList, $subject, $mailContent );
-        if($this->mail->isError()) trigger_error(join("\n", $this->mail->getError()));
-    }    
+	foreach($userList as $value){
+        	$this->mail->send($value, $subject, $mailContent,$cclist='',$includeMe=false);
+        }
+	if($this->mail->isError()) trigger_error(join("\n", $this->mail->getError()));
+	echo 'sent';
+    }
 }
+

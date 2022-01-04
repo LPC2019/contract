@@ -909,7 +909,7 @@ class contract extends control
         echo "success";
     }
 
-    public function approve($invoiceID ='0',$act="false")
+    public function approve($invoiceID ='0',$act="")
     {
         $ap=$this->dao->select("*")->from(" zt_invoice, zt_approval")
                 ->where('zt_invoice.id')->eq("$invoiceID")
@@ -923,7 +923,6 @@ class contract extends control
             echo "<script>history.back()</script>";
             die();
         }
-        
         $approval=$this->dao->select('*')->from('zt_approval')->where('id')->eq($ap->id)->fetch();
         if(!$approval || $approval->user!=$this->app->user->account){
             var_dump($approval);
@@ -932,12 +931,13 @@ class contract extends control
         $approval->approveDate=helper::now();
         //$approval->signature=user::getSign();
 
-        if($act){
+        if($act!=""||!empty($act)||isset($act)){
             $approval->status="approved";
+	    echo "approved";
         }else{
             $approval->status="rejected";
+	    die('rejected');
         }
-        
         $this->dao->update("zt_approval")->data($approval)->where('id')->eq($approval->id)->exec();
         echo("success");
         $sameStep = $this->dao->select('*')->from('zt_approval')
@@ -946,9 +946,10 @@ class contract extends control
         ->andWhere('objectType')->eq('invoice')
         ->andWhere('objectID')->eq($approval->objectID)
         ->fetch();
+	var_dump($sameStep);
         if($sameStep){
-            echo js::alert('You can not approve this invoice now');
-            die("<script>history.back()</script>");
+            echo js::alert('waiting for same step approver');
+           // die("<script>history.back()</script>");
         }
 
         $nextStep = $this->dao->select('*')->from('zt_approval')
@@ -957,7 +958,7 @@ class contract extends control
         ->andWhere('objectID')->eq($approval->objectID)
         ->andwhere("`order` > $approval->order order by `order`")
         ->fetchALL();
-        //if(!$nextStep){
+        //if(!$nextStep){//invoice approval finish, notify contract man
         
             //checking
         /**
@@ -967,12 +968,11 @@ class contract extends control
          */
 
         //}
-        $invoice =$this->coontract->getByID($invoiceID);
+        $invoice =$this->contract->getByID($invoiceID);
         $users=array();
         foreach($nextStep as $value){
             if(empty($users)){
-
-                array_pust($users,$value->user);
+                array_push($users,$value->user);
                 $invoice->step=$value->order;
                 $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();
             }else{
@@ -981,19 +981,11 @@ class contract extends control
                 }else{
                     break;
                 }
-
             }
         }
-        $this->sendApproveNote($approval->objectID,$users);// send mail to next step
-        echo js::alert('success');
-        die("success");
+        $this->contract->sendApproveNote($approval->objectID,$users);// send mail to next step
+        echo 'success';
 
-
-
-
-
-         
-        
 
     }
 }

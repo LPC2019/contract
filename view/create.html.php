@@ -68,11 +68,16 @@
             <table>
 
             <?php
-            $numArray=array(1,2,3,4,5,6);
+            $numArray['1']='1';
+            $numArray['2']='2';
+            $numArray['3']='3';
+            $numArray['4']='4';
+            $numArray['5']='5';
+            $numArray['6']='6';
             $itemRow = "
               <tr >
               <td>".html::select('ap[]', $poUsers, '', "class='form-control chosen'")."</td>
-              <td>".html::select("order[]",$numArray,'1','class="form-control chosen"')."</td>
+              <td>".html::select('order[]',$numArray, 1,'class="form-control chosen"')."</td>
               <td><input type='checkbox' id='sign[]' name='sign[]' value='true'>
               <td class='c-actions'>
                 <a href='javascript:void(0)' class='btn btn-link' onclick='addItem(this)'><i class='icon-plus'></i></a>
@@ -83,9 +88,13 @@
             ?>
             <?php js::set('itemRow',$itemRow )?>
             <script>
-            function addItem(clickedButton)
+		       temp=0;
+            	      function addItem(clickedButton)
                       {
-                          $(clickedButton).parent().parent().after(itemRow);
+			  
+                        $(clickedButton).parent().parent().after(itemRow);
+			// console.log($(clickedButton).parent().parent().parent());
+			//temp=$(clickedButton).parent().parent();
                       }
 
                       function delItem(clickedButton)
@@ -95,9 +104,10 @@
 
                       $(function()
                       {
-                          $('#' + module + 'Tab').addClass('btn-active-text');
+                         $('#' + module + 'Tab').addClass('btn-active-text');
                           $('#' + field + 'Tab').addClass('active');
-                      })
+                      }
+			)
 
             </script>
                   <thead>
