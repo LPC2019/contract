@@ -1188,16 +1188,22 @@ class contractModel extends model
     public function submit($invoiceID,$contractID){
       
         $approval=$this->dao->select("*")->from("zt_approval")->where('objectType')->eq('contract')->andWhere('objectID')->eq($contractID."order by  `order`")->fetchALL();
-        var_dump($approval);
+        $userList=array();
         foreach($approval as $ap){
             $object['objectType']='invoice';
             $object['objectID']=$invoiceID;
             $object['user']=$ap->user;
             $object['sign']=$ap->sign;
             $object['order']=$ap->order;
+            if($ap->order=='1'){
+                array_push($userList,$ap->user);
+            }
             $object['status']=$ap->status;
             $this->dao->insert('zt_approval')->data($object)->exec();
         }
+        var_dump($approval);
+        sendApproveNote($invoiceID,$userList);
+
 
     }
 
@@ -1212,12 +1218,12 @@ class contractModel extends model
         $oldcwd     = getcwd(); // system call
 
         $modulePath = $this->app->getModulePath($appName = '', 'contract');
-        $viewFile   = $modulePath . 'view/sendmail.html.php';
+        $viewFile   = $modulePath . 'view/sendapprovenote.html.php';
         chdir($modulePath . 'view');
 
-        if(file_exists($modulePath . 'ext/view/sendapprovennote.html.php'))
+        if(file_exists($modulePath . 'ext/view/sendapprovenote.html.php'))
         {
-            $viewFile = $modulePath . 'ext/view/sendapprovennote.html.php';
+            $viewFile = $modulePath . 'ext/view/sendapprovenote.html.php';
             chdir($modulePath . 'ext/view');
         }
 

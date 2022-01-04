@@ -78,7 +78,8 @@
                 <a href='javascript:void(0)' class='btn btn-link' onclick='addItem(this)'><i class='icon-plus'></i></a>
                 <a href='javascript:void(0)' class='btn btn-link' onclick='delItem(this)'><i class='icon-close'></i></a>
               </td>
-              </tr>";
+              </tr>
+              ";
             ?>
             <?php js::set('itemRow',$itemRow )?>
             <script>

@@ -97,29 +97,15 @@ js::set('foldAll',       $lang->project->treeLevel['root']);
     <?php if(!common::checkNotCN()):?>
     <?php if(common::hasPriv('story', 'batchCreate')) echo html::a($this->createLink('story', 'batchCreate', "productID=$productID&branch=$branch&moduleID=$moduleID"), "<i class='icon icon-plus'></i> {$lang->story->batchCreate}", '', "class='btn btn btn-secondary'");?>
     <?php
-    if(commonModel::isTutorialMode())
-    {
-        $wizardParams = helper::safe64Encode("productID=$productID&branch=$branch&moduleID=$moduleID");
-        $link = $this->createLink('tutorial', 'wizard', "module=story&method=create&params=$wizardParams");
-        echo html::a($link, "<i class='icon icon-plus'></i> {$lang->story->create}", '', "class='btn btn-primary create-story-btn'");
-    }
-    else
-    {
+
         $link = $this->createLink('story', 'create', "productID=$productID&branch=$branch&moduleID=$moduleID");
         if(common::hasPriv('story', 'create')) echo html::a($link, "<i class='icon icon-plus'></i> {$lang->story->create}", '', "class='btn btn-primary'");
-    }
+    
     ?>
     <?php else:?>
     <div class='btn-group dropdown-hover'>
       <?php
-      if(commonModel::isTutorialMode())
-      {
-          $wizardParams = helper::safe64Encode("productID=$productID&branch=$branch&moduleID=$moduleID");
-          $link = $this->createLink('tutorial', 'wizard', "module=story&method=create&params=$wizardParams");
-          echo html::a($link, "<i class='icon icon-plus'></i> {$lang->story->create} </span><span class='caret'>", '', "class='btn btn-primary create-story-btn'");
-      }
-      else
-      {
+
           $link     = $this->createLink('story', 'create', "product=$productID&branch=$branch&moduleID=$moduleID");
           $disabled = '';
           if(!common::hasPriv('story', 'create'))
@@ -128,7 +114,7 @@ js::set('foldAll',       $lang->project->treeLevel['root']);
               $disabled = 'disabled';
           }
           echo html::a($link, "<i class='icon icon-plus'></i> {$lang->story->create} </span><span class='caret'>", '', "class='btn btn-primary $disabled'");
-      }
+      
       ?>
       <ul class='dropdown-menu'>
         <?php $disabled = common::hasPriv('story', 'batchCreate') ? '' : "class='disabled'";?>
