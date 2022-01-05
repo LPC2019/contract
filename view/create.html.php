@@ -22,6 +22,10 @@
     <form class="load-indicator main-form form-ajax" id="createForm" method="post" target='hiddenwin'>
       <table class="table table-form">
         <tbody>
+        <tr>
+            <th class='w-140px'><?php echo "Asset";?></th>
+            <td><?php echo html::select('assetID', $products,$rootID, "class='form-control' required");?></td><td></td>
+          </tr>
           <tr>
             <th class='w-140px'><?php echo $lang->contract->name;?></th>
             <td><?php echo html::input('contractName', '', "class='form-control input-product-title' required");?></td><td></td>

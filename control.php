@@ -252,15 +252,21 @@ class contract extends control
             $this->executeHooks($contract);
             $locate = $this->createLink($this->moduleName, 'view', "contractID=$contract");
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $locate));
-            
-        }
 
-        $rootID = key($this->products);
+        }
+        $products = array();
+        $productList = $this->product->getOrderedProducts('noclosed');
+        foreach($productList as $product) $products[$product->id] = $product->name;
+        $product  = $this->product->getById($productID ? $productID : key($products));
+        if(!isset($products[$product->id])) $products[$product->id] = $product->name;
+
+        $rootID = key($this->products);//defalut product
         if($this->session->product) $rootID = $this->session->product;
         $this->product->setMenu($this->products, $rootID);
 
         $this->loadModel('user');
         $poUsers = $this->user->getPairs('nodeleted|noclosed',  '', $this->config->maxCount);
+        $this->view->products   =$products;
         $this->view->title      = $this->lang->product->create;
         $this->view->position[] = $this->view->title;
         $this->view->groups     = $this->loadModel('group')->getPairs();
@@ -279,7 +285,7 @@ class contract extends control
                     $this->send(array('status'=>"fail",'message'=>"only accept softcopy with pdf format"));
                 }
             }
-            if(empty($_FILES)){            
+            if(empty($_FILES)){
                 $this->send(array('status'=>"fail",'message'=>"pleases attact the invoice softcopy!"));
             }
             $invoice = $this->contract->createInvoice();
@@ -288,13 +294,13 @@ class contract extends control
             //$this->executeHooks($invoice);
             $locate = $this->createLink("contract", 'invoice', "invoice=$contract");
         $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess) /*, 'locate' => $locate)*/ );
-            
+
         }
 
         $rootID = key($this->products);
         if($this->session->product) $rootID = $this->session->product;
         $this->product->setMenu($this->products, $rootID);
-        
+
         $contractOption=$this->dao->select('id,contractName')->from('zt_contract')->where('appointedParty')->eq('admin')->andWhere('status')->eq('normal')->fetchPairs();
         if(!$contractOption){
             echo js::alert("no contract for you to create a invoice");
@@ -488,7 +494,7 @@ class contract extends control
         var_dump($contract);
         var_dump($contractAP);
 
-        
+
         if(!$contract) die(js::error($this->lang->notFound) . js::locate('back'));
 
         $product->desc = $this->loadModel('file')->setImgSize($product->desc);
@@ -859,11 +865,11 @@ class contract extends control
         $this->loadModel('action')->create('invoice', $invoiceID, 'submitted');
         echo "success";
     }
-        
+
         /**
      * Delete a contract.
      *
-     * @param  int   
+     * @param  int
      * @access public
      * @return void
      */
@@ -886,12 +892,12 @@ class contract extends control
     }
     /**
      * delete the Invoice
-     * @param  int   
+     * @param  int
      * @access public
      * @return void
      */
     public function deleteInvoice($invoiceID ='0')//soft delete invoice(keep files)
-    {   
+    {
 
         $invoice=$this->contract->getByID($invoiceID);
         if($invoice->status!='panding'){
@@ -963,10 +969,10 @@ class contract extends control
         ->andwhere("`order` > $approval->order order by `order`")
         ->fetchALL();
         //if(!$nextStep){//invoice approval finish, notify contract man
-        
+
             //checking
         /**
-      
+
          * if all people finished
          * close the invoice
          */

@@ -27,6 +27,7 @@ SET time_zone = "+00:00";
 -- 替換檢視表以便查看 `ztv_balance`
 -- (請參考以下實際畫面)
 --
+DROP TABLE IF EXISTS `ztv_balance`;
 CREATE TABLE `ztv_balance` (
 `id` int(11)
 ,`contractAmount` decimal(16,2)
@@ -39,7 +40,7 @@ CREATE TABLE `ztv_balance` (
 --
 -- 資料表結構 `zt_approval`
 --
-
+DROP TABLE IF EXISTS `zt_approval`;
 CREATE TABLE `zt_approval` (
   `id` int(11) NOT NULL,
   `objectType` varchar(255) NOT NULL,
@@ -50,7 +51,7 @@ CREATE TABLE `zt_approval` (
   `status` varchar(255) NOT NULL,
   `approveDate` datetime DEFAULT NULL,
   `signature` int(11) DEFAULT 0,
-  `description`` int(11) DEFAULT NULL
+  `description` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -58,7 +59,7 @@ CREATE TABLE `zt_approval` (
 --
 -- 資料表結構 `zt_contract`
 --
-
+DROP TABLE IF EXISTS `zt_contract`;
 CREATE TABLE `zt_contract` (
   `id` int(11) NOT NULL,
   `assetID` int(11) NOT NULL,
@@ -85,7 +86,7 @@ CREATE TABLE `zt_contract` (
 --
 -- 資料表結構 `zt_invoice`
 --
-
+DROP TABLE IF EXISTS `zt_invoice`;
 CREATE TABLE `zt_invoice` (
   `id` int(11) NOT NULL,
   `contractID` int(11) NOT NULL,
@@ -105,7 +106,7 @@ CREATE TABLE `zt_invoice` (
 --
 -- 資料表結構 `zt_invoicedetails`
 --
-
+DROP TABLE IF EXISTS `zt_invoicedetails`;
 CREATE TABLE `zt_invoicedetails` (
   `id` int(11) NOT NULL,
   `invoiceID` int(11) NOT NULL,
