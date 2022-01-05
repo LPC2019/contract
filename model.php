@@ -417,7 +417,7 @@ class contractModel extends model
 
         if(dao::isError()) die(js::error('contractID#' . $contractID . dao::getError(true)));
         $i=0;
-        for($i;$i<count($_POST['ap']);$i++){
+        for($i;$i<count($_POST['ap']);$i++){// create approve schema
             if($_POST['ap'][$i]=="" || empty($_POST['ap'][$i]) || !isset($_POST['ap'][$i])){
                 continue;
             }else{
@@ -452,10 +452,10 @@ class contractModel extends model
             ->remove('price')
             ->get();
         $this->dao->insert("zt_invoice")->data($invoice)->exec();
-        if(dao::isError()) die(js::error('product#' . $productID . dao::getError(true)));
         $invoiceID = $this->dao->lastInsertID();
+        if(dao::isError()) die(js::error('invoice#' . $invoiceID . dao::getError(true)));
         $i=0;
-        for($i;$i<count($_POST['item']);$i++){
+        for($i;$i<count($_POST['item']);$i++){//create invoice details
             if($_POST['item'][$i]=="" || empty($_POST['item'][$i]) || !isset($_POST['item'][$i])){
                 continue;
             }else{
@@ -1188,7 +1188,7 @@ class contractModel extends model
     public function submit($invoiceID,$contractID){
         $approval=$this->dao->select("*")->from("zt_approval")->where('objectType')->eq('contract')->andWhere('objectID')->eq($contractID."order by  `order`")->fetchALL();
         $userList=array();
-        foreach($approval as $ap){
+        foreach($approval as $ap){//create approve list
             $object['objectType']='invoice';
             $object['objectID']=$invoiceID;
             $object['user']=$ap->user;
@@ -1211,12 +1211,11 @@ class contractModel extends model
     {
         $this->loadModel('mail');
         $invoice  = $this->getById($invoiceID);
-        //$users = $this->loadModel('user')->getPairs('noletter');
-        // Get mail content.
+
         $oldcwd     = getcwd(); // system call
 
         $modulePath = $this->app->getModulePath($appName = '', 'contract');
-        $viewFile   = $modulePath . 'view/sendapprovenote.html.php';
+        $viewFile   = $modulePath . 'view/sendapprovenote.html.php';// email content
         chdir($modulePath . 'view');
 
         if(file_exists($modulePath . 'ext/view/sendapprovenote.html.php'))
@@ -1232,11 +1231,6 @@ class contractModel extends model
 
         chdir($oldcwd);
 
-        /*
-        $userList = $this->getToAndCcList($invoiceID);
-        if(!$sendUsers) return;
-        list($toList, $ccList) = $sendUsers;
-        */
         $subject = " invoice #$invoice->id is ready for authorization";
         // Send emails. 
 	foreach($userList as $value){

@@ -265,6 +265,8 @@ class contract extends control
         $this->view->position[] = $this->view->title;
         $this->view->groups     = $this->loadModel('group')->getPairs();
         $this->view->poUsers    = $poUsers;
+        /* need to set which user should be select*/
+
         $this->view->rootID     = $rootID;
         $this->display();
     }
@@ -301,6 +303,7 @@ class contract extends control
         $this->view->contractOption=$contractOption;
         $this->loadModel('user');
         $poUsers = $this->user->getPairs('nodeleted|noclosed',  '', $this->config->maxCount);
+        /* need to set which user should be select*/
         $this->view->title      = $this->lang->product->create;
         $this->view->position[] = $this->view->title;
         $this->view->groups     = $this->loadModel('group')->getPairs();
@@ -864,7 +867,7 @@ class contract extends control
      * @access public
      * @return void
      */
-    public function delete($contractID)
+    public function delete($contractID)//delete contract
     {
         $contract=$this->dao->select('*')->from('zt_contract')->where('id')->eq('contractID')->fetch();
         if($contract->contractManager!=$this->app->user->account || $contract->createdBy!=$this->app->user->account){
@@ -938,9 +941,10 @@ class contract extends control
             $approval->status="rejected";
 	    die('rejected');
         }
+        //add desc
         $this->dao->update("zt_approval")->data($approval)->where('id')->eq($approval->id)->exec();
         echo("success");
-        $sameStep = $this->dao->select('*')->from('zt_approval')
+        $sameStep = $this->dao->select('*')->from('zt_approval')//check approve stage
         ->where('`order`')->eq($approval->order)
         ->andWhere('status')->eq('waiting')
         ->andWhere('objectType')->eq('invoice')
@@ -952,7 +956,7 @@ class contract extends control
            // die("<script>history.back()</script>");
         }
 
-        $nextStep = $this->dao->select('*')->from('zt_approval')
+        $nextStep = $this->dao->select('*')->from('zt_approval')//check approve stage
         ->where('status')->eq('waiting')
         ->andWhere('objectType')->eq('invoice')
         ->andWhere('objectID')->eq($approval->objectID)
@@ -970,7 +974,7 @@ class contract extends control
         //}
         $invoice =$this->contract->getByID($invoiceID);
         $users=array();
-        foreach($nextStep as $value){
+        foreach($nextStep as $value){//get next secquence approver
             if(empty($users)){
                 array_push($users,$value->user);
                 $invoice->step=$value->order;
