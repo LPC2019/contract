@@ -49,7 +49,8 @@ CREATE TABLE `zt_approval` (
   `order` int(11) NOT NULL,
   `status` varchar(255) NOT NULL,
   `approveDate` datetime DEFAULT NULL,
-  `signature` int(11) DEFAULT 0
+  `signature` int(11) DEFAULT 0,
+  `description`` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -60,6 +61,7 @@ CREATE TABLE `zt_approval` (
 
 CREATE TABLE `zt_contract` (
   `id` int(11) NOT NULL,
+  `assetID` int(11) NOT NULL,
   `contractName` varchar(255) DEFAULT NULL,
   `refNo` varchar(255) DEFAULT NULL,
   `appointedParty` varchar(255) NOT NULL,
