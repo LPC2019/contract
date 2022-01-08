@@ -133,6 +133,7 @@
               <?php echo html::textarea('description', '', "rows='8' class='form-control kindeditor' hidefocus='true' tabindex=''");?>
             </td>
           </tr>  
+          <!--
           <tr>
             <th><?php echo $lang->contract->acl;?></th>
             <td colspan='2'><?php echo nl2br(html::radio('acl', $lang->contract->aclList, 'open', "onclick='setWhite(this.value);'", 'block'));?></td>
@@ -140,7 +141,8 @@
           <tr id='whitelistBox' class='hidden'>
             <th><?php echo $lang->contract->whitelist;?></th>
             <td colspan='2'><?php echo html::checkbox('whitelist', $groups, '', '', 'inline');?></td>
-          </tr>  
+          </tr>
+                    -->  
           <tr>
             <td colspan='3' class='text-center form-actions'>
               <?php echo html::submitButton();?>

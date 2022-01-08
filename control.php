@@ -29,10 +29,9 @@ class contract extends control
         $this->loadModel('release');
         $this->loadModel('tree');
         $this->loadModel('user');
-
         /* Get all products, if no, goto the create page. */
         $this->products = $this->product->getPairs('nocode');
-        if(empty($this->products) and strpos(',create,index,showerrornone,', $this->methodName) === false and $this->app->getViewType() != 'mhtml') $this->locate($this->createLink('product', 'create'));
+        if(empty($this->products) and strpos(',create,index,showerrornone,', $this->methodName) === false and $this->app->getViewType() != 'mhtml') $this->locate($this->createLink('contract', 'create'));
         $this->view->products = $this->products;
     }
 
@@ -50,15 +49,17 @@ class contract extends control
      */
     public function index($locate = 'auto', $productID = 0, $status = 'noclosed', $orderBy = 'order_desc', $recTotal = 0, $recPerPage = 10, $pageID = 1)
     {
-        if($this->config->global->flow == 'onlyTest') $this->locate($this->createLink($this->moduleName, 'build'));
+
+        //expect do not exist
+
         if($locate == 'yes') $this->locate($this->createLink($this->moduleName, 'browse'));
 
-        if($this->app->getViewType() != 'mhtml') unset($this->lang->product->menu->index);
         $productID = $this->product->saveState($productID, $this->products);
+        var_dump($productID);
         $branch    = (int)$this->cookie->preBranch;
-        $this->product->setMenu($this->products, $productID, $branch);
+        $this->contract->setMenu($this->products, $productID, $branch);
 
-        if(common::hasPriv('product', 'create')) $this->lang->modulePageActions = html::a($this->createLink('product', 'create'), "<i class='icon icon-sm icon-plus'></i> " . $this->lang->product->create, '', "class='btn btn-primary'");
+        if(common::hasPriv('product', 'create')) $this->lang->modulePageActions = html::a($this->createLink('contract', 'create'), "<i class='icon icon-sm icon-plus'></i> " . $this->lang->contract->create, '', "class='btn btn-primary'");
 
         $this->view->title         = $this->lang->product->index;
         $this->view->position[]    = $this->lang->product->index;
@@ -705,8 +706,9 @@ class contract extends control
                 }
             }
         }
-        $productList = array_merge($productList, $products);
 
+        $productList = array_merge($productList, $products);
+        var_dump($productList);
         $this->view->products  = $productList;
         $this->display();
     }
