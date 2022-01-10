@@ -47,17 +47,13 @@ class contract extends control
      * @access public
      * @return void
      */
-    public function index($locate = 'auto', $productID = 0, $status = 'noclosed', $orderBy = 'order_desc', $recTotal = 0, $recPerPage = 10, $pageID = 1)
+    public function index( $productID = 0, $status = 'noclosed', $orderBy = 'order_desc', $recTotal = 0, $recPerPage = 10, $pageID = 1)
     {
-
-        //expect do not exist
-
-        if($locate == 'yes') $this->locate($this->createLink($this->moduleName, 'browse'));
 
         $productID = $this->product->saveState($productID, $this->products);
         var_dump($productID);
         $branch    = (int)$this->cookie->preBranch;
-        $this->contract->setMenu($this->products, $productID, $branch);
+        $this->contract->setMenu($this->products, $productID);
 
         if(common::hasPriv('product', 'create')) $this->lang->modulePageActions = html::a($this->createLink('contract', 'create'), "<i class='icon icon-sm icon-plus'></i> " . $this->lang->contract->create, '', "class='btn btn-primary'");
 
@@ -683,7 +679,7 @@ class contract extends control
      */
     public function ajaxGetDropMenu($productID, $module, $method, $extra)
     {
-        $this->view->link      = $this->product->getProductLink($module, $method, $extra);
+        $this->view->link      = $this->contract->getProductLink($module, $method, $extra);
         $this->view->productID = $productID;
         $this->view->module    = $module;
         $this->view->method    = $method;
@@ -708,7 +704,7 @@ class contract extends control
         }
 
         $productList = array_merge($productList, $products);
-        var_dump($productList);
+
         $this->view->products  = $productList;
         $this->display();
     }

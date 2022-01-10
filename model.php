@@ -1102,6 +1102,10 @@ class contractModel extends model
         else if($module == 'doc')
         {
             $link = helper::createLink('doc', 'objectLibs', "type=product&objectID=%s&from=product");
+        }else if($module == 'contract' && $method=='invoiceList'){
+            // list view index
+        }else if($module == 'contract' ){
+            $link = helper::createLink($module,"index", "contractID=%s");
         }
 
         return $link;
