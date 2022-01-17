@@ -186,10 +186,25 @@ $lang->contract->aclList['private'] = "Only who related to the contract can acce
 $lang->contract->aclList['custom']  = 'Custom (Team members and Whitelist members can access it.)';
 $lang->contract->whitelist          = "White List";
 
-$lang->invoice->create="Create Invoice";
-$lang->invoice->amount="Amount";
-$lang->invoice->acl           = 'Access Control';
+
+$lang->invoice->create             ="Create Invoice";
+$lang->invoice->amount             ="Amount";
+$lang->invoice->acl                = 'Access Control';
 $lang->invoice->aclList['open']    = "Default (Users with privileges to {$lang->contract->common} can access it.)";
 $lang->invoice->aclList['private'] = "Only who related to the contract can access";
 $lang->invoice->aclList['custom']  = 'Custom (Team members and Whitelist members can access it.)';
 $lang->invoice->whitelist          = "White List";
+$lang->invoice->approve            = "approve";
+$lang->invoice->reject             = "reject";
+$lang->contract->contractID        = 'Contract ID';
+$lang->invoice->status             = 'Status';
+$lang->invoice->amount             = 'Amount';
+$lang->invoice->submitteddate      = 'Submitted date';
+$lang->invoice->step               = 'Step';
+$lang->invoice->detail             = 'Details';
+$lang->invoice->AccountStatus      = 'AccountStatus';
+$lang->invoice->invoiceID          = 'Invoice ID';
+$lang->invoice->item               = 'Item';
+$lang->invoice->price              = 'Price';
+$lang->invoice->edit               = 'Edit';
+

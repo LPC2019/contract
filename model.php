@@ -190,7 +190,7 @@ class contractModel extends model
     }
 
     /**
-     * Get product by id.
+     * Get invoice by id.
      *
      * @param  int    $productID
      * @access public
@@ -201,8 +201,24 @@ class contractModel extends model
         $invoice = $this->dao->findById($invoiceID)->from("zt_invoice")->fetch();
         if(!$invoice) return false;
 
-        return $this->loadModel('file')->replaceImgURL($invoice, 'description');
+        return $invoice;
+        //return $this->loadModel('file')->replaceImgURL($invoice, 'description');
     }
+    /**
+     * Get contract by id.
+     *
+     * @param  int    $productID
+     * @access public
+     * @return object
+     */
+    public function getContractByID($contractID)
+    {
+        $contract = $this->dao->findById($contractID)->from("zt_contract")->fetch();
+        if(!$contract) return false;
+
+        return $contract;
+    }
+
 
     /**
      * Get by idList.
@@ -1202,6 +1218,70 @@ class contractModel extends model
         }
 	if($this->mail->isError()) trigger_error(join("\n", $this->mail->getError()));
 	echo 'sent';
+    }
+    /** 2022.1.13
+     * Get invoice stat by id
+     *
+     * @param  int    $productID
+     * @param  string $storyType
+     * @access public
+     * @return object|bool
+     */
+    public function getInvoiceStatByID($invoiceID)
+    {
+        if(!$this->checkPriv($invoiceID)) return false;
+        $invoice = $this->getById($invoiceID);
+    
+
+        $invoice->id     = $invoiceID;
+        $invoice->refNo  = $this->dao->select('refNo')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('refNo');
+        $invoice->status = $this->dao->select('status')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('status');
+        $invoice->amount = $this->dao->select('amount')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('amount');
+        $invoice->submitdate = //isset($submitteddate[$invoice->id])? $submitteddate[$invoice->id]: 'Not determined'
+                               $this->dao->select('submitdate')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('submitdate');
+        $invoice->step = $this->dao->select('step')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('step');
+        $invoice->contractID = $this->dao->select('contractID')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('contractID');
+        $invoice->destription = $this->dao->select('description')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('description');
+
+        $invoice->item = $this->dao->select('item')->from('zt_invoicedetails')->Where('invoiceID')->eq($invoiceID)->fetchPairs('item');
+        $invoice->price = $this->dao->select('price')->from('zt_invoicedetails')->Where('invoiceID')->eq($invoiceID)->fetchPairs('price');
+      
+
+        return $invoice;
+    }
+    public function getInvoiceList($status = 'all', $limit = 0, $line = 0)
+    {
+        return $this->dao->select('*')->from('zt_invoice')
+            ->where('deleted')->eq(0)
+            ->beginIF($limit > 0)->limit($limit)->fi()
+            ->fetchAll('id');
+    }
+    
+    public function getInvoiceStats($orderBy = 'order_desc', $pager = null, $line = 0, $storyType = 'story')
+    {
+        $this->loadModel('report');
+        $this->loadModel('story');
+        $this->loadModel('bug');
+
+        
+        $invoices = $this->getInvoiceList($status, $limit = 0, $line); 
+        $invoiceID = $this->dao->select('id')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('contractID')->eq($contractID)->fetch('');
+       
+        $stats = array();
+
+        foreach($invoices as $invoiceID => $invoice)
+        { 
+            $invoice->refNo  = $this->dao->select('refNo')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('refNo');
+            $invoice->status = $this->dao->select('status')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('status');
+            $invoice->amount = $this->dao->select('amount')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('amount');
+            $invoice->submitdate = //isset($submitteddate[$invoice->id])? $submitteddate[$invoice->id]: 'Not determined'
+                                      $this->dao->select('submitdate')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('submitdate');
+            $invoice->step = $this->dao->select('step')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('step');
+            $invoice->contractID = $this->dao->select('contractID')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('contractID');
+            $stats[] = $invoice;
+        }
+  
+        return $stats;
     }
 }
 

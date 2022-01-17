@@ -915,9 +915,38 @@ class contract extends control
         $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();
         echo "success";
     }
-
-    public function approve($invoiceID ='0',$act="")
+    public function deleteContract($contractID ='0')//soft delete contract
     {
+
+        $contract=$this->contract->getContractByID($contractID);
+        if($this->app->user->account!='admin'||$this->app->user->account != $contract->contractManager){// only admin and CM can delete the contract
+            echo js::alert("you can not delete this contract");
+           // echo "<script>history.back()</script>";
+            die();
+        }
+        $contract->deleted="1";
+        $contract->lastEdit=helper::now();
+        $this->dao->update('zt_contract')->data($contract)->where('id')->eq($contractID)->exec();
+        //delete invoice and softcopy&& is softdelete??
+        // echo "<script>history.back()</script>";
+        
+        echo "success";
+    }
+    
+
+    public function approve($invoiceID ='0')
+    {
+        
+        if(!$_POST['description']){
+            $invoice=$this->contract->getByID($invoiceID);
+            $contract=$this->contract->getContractByID($invoice->contractID);
+            $this->view->asset=$this->loadModel('product')->getByID($contract->assetID);
+            $this->view->contract=$contract;
+            $this->view->invoice=$invoice;
+
+            $this->display();
+            die();
+        }
         $ap=$this->dao->select("*")->from(" zt_invoice, zt_approval")
                 ->where('zt_invoice.id')->eq("$invoiceID")
                 ->andWhere('zt_approval.objectID')->eq($invoiceID)
@@ -927,9 +956,10 @@ class contract extends control
                 ->fetch();
         if(!$ap){
             echo js::alert('You can not approve this invoice now');
-            echo "<script>history.back()</script>";
+           // echo "<script>history.back()</script>";
             die();
         }
+        
         $approval=$this->dao->select('*')->from('zt_approval')->where('id')->eq($ap->id)->fetch();
         if(!$approval || $approval->user!=$this->app->user->account){
             var_dump($approval);
@@ -938,26 +968,27 @@ class contract extends control
         $approval->approveDate=helper::now();
         //$approval->signature=user::getSign();
 
-        if($act!=""||!empty($act)||isset($act)){
-            $approval->status="approved";
-	    echo "approved";
-        }else{
-            $approval->status="rejected";
-	    die('rejected');
-        }
+        $approval->status="approved";
+        $approval->description=$_POST['description'];
         //add desc
         $this->dao->update("zt_approval")->data($approval)->where('id')->eq($approval->id)->exec();
-        echo("success");
         $sameStep = $this->dao->select('*')->from('zt_approval')//check approve stage
         ->where('`order`')->eq($approval->order)
         ->andWhere('status')->eq('waiting')
         ->andWhere('objectType')->eq('invoice')
         ->andWhere('objectID')->eq($approval->objectID)
         ->fetch();
-	var_dump($sameStep);
+	    var_dump($sameStep);
         if($sameStep){
-            echo js::alert('waiting for same step approver');
-           // die("<script>history.back()</script>");
+            echo "in same step";
+            /*if(isonlybody()) {
+                die(js::closeModal('parent.parent', 'this'));
+            }else{
+                die("<script>history.back()</script>");
+            }*/
+
+            die();
+            
         }
 
         $nextStep = $this->dao->select('*')->from('zt_approval')//check approve stage
@@ -966,23 +997,28 @@ class contract extends control
         ->andWhere('objectID')->eq($approval->objectID)
         ->andwhere("`order` > $approval->order order by `order`")
         ->fetchALL();
-        //if(!$nextStep){//invoice approval finish, notify contract man
-
-            //checking
-        /**
-
-         * if all people finished
-         * close the invoice
-         */
-
-        //}
         $invoice =$this->contract->getByID($invoiceID);
+
+        if(!$nextStep){//invoice approval finish, notify contract man
+            $invoice->status="approved";
+            $invoice->lastEdit=helper::now();
+            $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();//update sequence
+            $this->contract->notifyCM($approval->objectID,$users);// send mail to next step
+            die('finish');
+             /*if(isonlybody()) {
+                die(js::closeModal('parent.parent', 'this'));
+            }else{
+                die("<script>history.back()</script>");
+            }*/
+
+        }
         $users=array();
-        foreach($nextStep as $value){//get next secquence approver
+        foreach($nextStep as $value){//get next sequence approver
             if(empty($users)){
                 array_push($users,$value->user);
                 $invoice->step=$value->order;
-                $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();
+                $invoice->lastEdit=helper::now();
+                $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();//update sequence
             }else{
                 if($value->order==$users['0']->order){
                     array_pust($users,$value->user);
@@ -993,7 +1029,145 @@ class contract extends control
         }
         $this->contract->sendApproveNote($approval->objectID,$users);// send mail to next step
         echo 'success';
+         /*if(isonlybody()) {
+                die(js::closeModal('parent.parent', 'this'));
+            }else{
+                die("<script>history.back()</script>");
+            }*/
 
 
+    }
+    public function reject($invoiceID ='0')
+    {
+        
+        if(!$_POST['description']){
+            $invoice=$this->contract->getByID($invoiceID);
+            $contract=$this->contract->getContractByID($invoice->contractID);
+            $this->view->asset=$this->loadModel('product')->getByID($contract->assetID);
+            $this->view->contract=$contract;
+            $this->view->invoice=$invoice;
+            $this->display();
+            die();
+        }
+        $ap=$this->dao->select("*")->from(" zt_invoice, zt_approval")
+                ->where('zt_invoice.id')->eq("$invoiceID")
+                ->andWhere('zt_approval.objectID')->eq($invoiceID)
+                ->andWhere('zt_approval.objectType')->eq('invoice')
+                ->andWhere('zt_approval.user')->eq($this->app->user->account)
+                ->andWhere("zt_approval.status = 'waiting' and zt_invoice.step=zt_approval.order")
+                ->fetch();
+        if(!$ap){
+            echo js::alert('You can not approve this invoice now');
+           // echo "<script>history.back()</script>";
+            die();
+        }
+        
+        $approval=$this->dao->select('*')->from('zt_approval')->where('id')->eq($ap->id)->fetch();
+        if(!$approval || $approval->user!=$this->app->user->account){
+            var_dump($approval);
+            die("system error");
+        }
+        $approval->approveDate=helper::now();
+        //$approval->signature=user::getSign();
+
+
+        $approval->status="rejected";
+        $approval->description=$_POST['description'];
+        $this->dao->update("zt_approval")->data($approval)->where('id')->eq($approval->id)->exec();
+        echo("success");
+        //send notify to Contract manager
+        //$this->contract->sendApproveNote($approval->objectID,$users);// send mail to next step
+
+
+    }
+
+        /**
+     * All invoice. 2022.1.10
+     *
+     * @param  int    $productID
+     * @param  int    $line
+     * @param  string $status
+     * @param  string $orderBy
+     * @param  int    $recTotal
+     * @param  int    $recPerPage
+     * @param  int    $pageID
+     * @access public
+     * @return void 
+     */
+    public function invoicelist($contractID = 0, $line = 0, $status = 'noclosed', $orderBy = 'order_desc', $recTotal = 0, $recPerPage = 10, $pageID = 1)
+    {
+        $this->session->set('productList', $this->app->getURI(true));
+        $productID = $this->product->saveState($productID, $this->products);
+        $this->product->setMenu($this->products, $productID);
+ 
+        /* Load pager and get tasks. */
+        $this->app->loadClass('pager', $static = true);
+        $pager = new pager($recTotal, $recPerPage, $pageID);
+    
+
+        /* Save this url to session. */
+        $uri = $this->app->getURI(true);
+        $this->app->session->set('lineList', $uri);
+
+        $this->app->loadLang('my');
+        $this->view->title        = $this->lang->product->allProduct;
+        $this->view->position[]   = $this->lang->product->allProduct;
+        $this->view->productStats = $this->product->getStats($orderBy, $pager, $status, $line);
+        $this->view->lineTree     = $this->loadModel('tree')->getTreeMenu(0, $viewType = 'line', $startModuleID = 0, array('treeModel', 'createLineLink'), array('productID' => $productID, 'status' => $status));
+        $this->view->lines        = array('') + $this->tree->getLinePairs();
+        $this->view->productID    = $productID;
+        $this->view->line         = $line;
+        $this->view->status       = $status;   
+        $this->view->orderBy      = $orderBy;
+        $this->view->pager        = $pager;
+
+        //Add invoice stats
+        $this->view->invoiceStats = $this->contract->getInvoiceStats($orderBy, $pager, $line);
+        
+        $this->display();
+    }
+        /** 
+     * View an invoice. 2022.1.10
+     *
+     * @param  int    $invoiceID
+     * @param  int    $contractID
+     * @access public
+     * 
+     * @return void
+     */
+    public function invoiceview($invoiceID, $contractID)
+    {
+        //$product = $this->product->getStatByID($productID);
+        //if(!$product) die(js::error($this->lang->notFound) . js::locate('back'));
+
+        //$product->desc = $this->loadModel('file')->setImgSize($product->desc);
+        //$this->product->setMenu($this->products, $productID);
+
+        //For Invoice 2022.1.13
+        $invoice = $this->contract->getInvoiceStatByID($invoiceID);
+        if(!$invoice) die(js::error($this->lang->notFound) . js::locate('back'));
+
+        /* Load pager. */
+        $this->app->loadClass('pager', $static = true);
+        $pager = new pager(0, 30, 1);
+
+        $this->executeHooks($productID);
+
+        $this->view->title      = $product->name . $this->lang->colon . $this->lang->product->view;
+        $this->view->position[] = html::a($this->createLink($this->moduleName, 'browse'), $product->name);
+        $this->view->position[] = $this->lang->product->view;
+        $this->view->product    = $product;
+        $this->view->actions    = $this->loadModel('action')->getList('product', $productID);
+        $this->view->users      = $this->user->getPairs('noletter');
+        $this->view->groups     = $this->loadModel('group')->getPairs();
+        $this->view->lines      = array('') + $this->loadModel('tree')->getLinePairs();
+        $this->view->branches   = $this->loadModel('branch')->getPairs($productID);
+        $this->view->dynamics   = $this->loadModel('action')->getDynamic('all', 'all', 'date_desc', $pager, $productID);
+        $this->view->roadmaps   = $this->product->getRoadmap($productID, 0, 6);
+
+        //For invoice 2022.1.13
+        $this->view->invoice    = $invoice;
+        
+        $this->display();
     }
 }
