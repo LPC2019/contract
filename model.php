@@ -1286,9 +1286,40 @@ class contractModel extends model
     public function getApprovalList($id,$type='invoice'){
         $approvals=$this->dao->select('*')->from('zt_approval')->where("objectType")->eq($type)->andWhere("objectID")->eq($id)->fetchALL('order');
         return $approvals;
+    }
+    public function updateInvoice($invoiceID){
+        $invoice=$this->dao->select('*')->from('zt_invoice')->where("id")->eq($invoiceID)->fetch();
+        $invoice->description=$this->post->description;
+        $invoice->refNo=$this->post->refNo;
+        $invoice->amount=$this->post->amount;
+        $invoice->lastEdit=helper::now();
 
+        $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();// update invoice record
 
+        $this->dao->delete()->from('zt_invoicedetails')->where('invoiceID')->eq($invoiceID)->exec();// update invoice details record
+        $i=0;
+        for($i;$i<count($_POST['item']);$i++){//create invoice details
+            if($_POST['item'][$i]=="" || empty($_POST['item'][$i]) || !isset($_POST['item'][$i])){
+                continue;
+            }else{
+                $details['invoiceID']=$invoiceID;
+                $details['item']=$_POST['item'][$i];
+                $details['price']=isset($_POST['price'][$i])?$_POST['price'][$i]:'0';
+                $this->dao->insert("zt_invoicedetails")->data($details)->exec();
+            }
+        }
+        
+        
+        return true;
 
+    }
+    public function payment($invoiceID){
+        $invoice=$this->dao->select('*')->from('zt_invoice')->where("id")->eq($invoiceID)->fetch();
+        $invoice->status='paid';
+        $invoice->paymentNo=$this->post->paymentNo;
+        $invoice->lastEdit=helper::now();
+        $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();// update invoice record
+        return true;
     }
 }
 

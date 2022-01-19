@@ -185,6 +185,10 @@ $lang->contract->aclList['open']    = "Default (Users with privileges to {$lang-
 $lang->contract->aclList['private'] = "Only who related to the contract can access";
 $lang->contract->aclList['custom']  = 'Custom (Team members and Whitelist members can access it.)';
 $lang->contract->whitelist          = "White List";
+$lang->contract->payment          = "Submit Payment";
+$lang->contract->paymentNo          = "Payment Number";
+
+
 
 
 $lang->invoice->create             ="Create Invoice";

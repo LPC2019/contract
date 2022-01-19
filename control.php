@@ -859,7 +859,8 @@ class contract extends control
         $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();
         $this->contract->submit($invoiceID,$contract->id);
         $this->loadModel('action')->create('invoice', $invoiceID, 'submitted');
-        echo "success";
+        die("<script>location.reload()</script>");
+
     }
 
         /**
@@ -976,16 +977,11 @@ class contract extends control
         ->andWhere('objectType')->eq('invoice')
         ->andWhere('objectID')->eq($approval->objectID)
         ->fetch();
-	    var_dump($sameStep);
-        if($sameStep){
-            echo "in same step";
-            /*if(isonlybody()) {
-                die(js::closeModal('parent.parent', 'this'));
-            }else{
-                die("<script>history.back()</script>");
-            }*/
-
+        if($sameStep){// keep it
+            echo jS::alert("in same step");
+            js::closeModal('parent.parent', 'this');
             die();
+            
             
         }
 
@@ -1003,12 +999,6 @@ class contract extends control
             $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();//update sequence
             $this->contract->notifyCM($approval->objectID,$users);// send mail to next step
             die('finish');
-             /*if(isonlybody()) {
-                die(js::closeModal('parent.parent', 'this'));
-            }else{
-                die("<script>history.back()</script>");
-            }*/
-
         }
         $users=array();
         foreach($nextStep as $value){//get next sequence approver
@@ -1055,15 +1045,14 @@ class contract extends control
                 ->andWhere("zt_approval.status = 'waiting' and zt_invoice.step=zt_approval.order")
                 ->fetch();
         if(!$ap){
-            echo js::alert('You can not approve this invoice now');
-           // echo "<script>history.back()</script>";
+            echo js::alert('You can not reject this invoice now');
+            echo "<script>history.back()</script>";
             die();
         }
         
         $approval=$this->dao->select('*')->from('zt_approval')->where('id')->eq($ap->id)->fetch();
         if(!$approval || $approval->user!=$this->app->user->account){
-            var_dump($approval);
-            die("system error");
+            die(je::alert("system error"));
         }
         $approval->approveDate=helper::now();
         //$approval->signature=user::getSign();
@@ -1071,8 +1060,11 @@ class contract extends control
 
         $approval->status="rejected";
         $approval->description=$_POST['description'];
-        $this->dao->update("zt_approval")->data($approval)->where('id')->eq($approval->id)->exec();
-        echo("success");
+        $this->dao->update("zt_approval")->data($approval)->where('id')->eq($approval->id)->exec();        
+        echo js::alert("success");
+        js::closeModal('parent.parent', 'this');
+
+
         //send notify to Contract manager
         //$this->contract->sendApproveNote($approval->objectID,$users);// send mail to next step
 
@@ -1096,7 +1088,7 @@ class contract extends control
     {
 
         //pleases help to fix the fucking pager
-        
+
        // $this->session->set('productList', $this->app->getURI(true));
         $productID = $this->product->saveState($productID, $this->products);
         $this->product->setMenu($this->products, $productID);// may be add more col for select contract
@@ -1164,9 +1156,91 @@ class contract extends control
         $this->view->roadmaps   = $this->product->getRoadmap($productID, 0, 6);
 
         //For invoice 2022.1.13
+        $this->contract->setMenu($this->products, $contract->assetID);
         $this->view->invoice    = $invoice;
         $this->view->approvals  = $approvals;
+        $approver=array();// get who can approve/reject
+        foreach($approvals[$invoice->step] as $value){
+            array_push($approver,$value->user);
+        }
+        $this->view->approver=$approver;
+
         
+        $this->display();
+    }
+    public function editinvoice($invoiceID)
+    {
+ 
+        $invoice=$this->contract->getById($invoiceID);
+        if($invoice->status!='panding'){
+            echo js::alert('You can\'t edit this invoice now');
+            $this->send(array('result' => 'fail', 'message' => "You can't edit this invoice now", 'locate' => inlink('invoicelist', "invoice=$invoiceID")));
+        }
+
+        if(!empty($_POST))
+        {
+            
+            $result = $this->contract->updateInvoice($invoiceID);
+            if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if($result){
+                $files=$this->loadModel('file')->getByObject('invoice',$invoiceID);
+                $fileID=array_keys($files);
+                $result=$this->file->replaceFile($fileID[0],"files");
+                $actionID = $this->loadModel('action')->create('invoice', $invoiceID, 'updated');
+                $this->executeHooks($productID);
+                $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('viewInvoice', "invoice=$invoiceID")));
+            }else{
+                $this->send(array('fail' => 'success', 'message' => 'pleases contact system admin'));
+            
+
+            }
+        }
+
+
+        $contract=$this->contract->getContractByID($invoice->contractID);
+        $invoicedetails=$this->dao->select('*')->from('zt_invoicedetails')->where('invoiceID')->eq($invoiceID)->fetchALL();
+        $this->contract->setMenu($this->products, $contract->assetID);
+        $this->view->contract=$contract;
+        $this->view->invoice=$invoice;
+        $this->view->invoicedetails=$invoicedetails;
+
+        $this->display();
+    }
+
+    public function payment($invoiceID)// for contract manager to do the payment(no transaction!!)
+    {
+
+        $invoice=$this->contract->getById($invoiceID);
+        $contract=$this->contract->getContractByID($invoice->contractID);
+        $asset=$this->loadModel('product')->getByID($contract->assetID);
+        $this->contract->setMenu($this->products, $contract->assetID);
+        
+        $this->contract->setMenu($this->products, $contract->assetID);
+
+
+        if($this->app->user->account!=$contract->contractManager || $this->app->user->account!='admin'){// check user role
+            echo js::alert('You do not have permission to do the payment action');
+            $this->send(array('result' => 'fail', 'message' => "You can't do the payment", 'locate' => inlink('invoicelist', "invoice=$invoiceID")));
+            die();
+        }
+        if($invoice->status!='approved'){//check invoice status
+            echo js::alert('The invoice\'s status is not approved');
+            $this->send(array('result' => 'fail', 'message' => "The invoice haven\'t approved", 'locate' => inlink('invoicelist', "invoice=$invoiceID")));
+            die();
+        }
+        if(!empty($_POST))
+        {
+            $this->contract->payment($invoiceID);
+            echo js::alert("success");
+            if(isonlybody()){
+                die(js::closeModal('parent.parent', 'this'));
+               // die(js::reload('parent.parent'));
+            } 
+        }
+        // may be show some number data
+        $this->view->contract=$contract;
+        $this->view->invoice=$invoice;
+        $this->view->asset=$asset;
         $this->display();
     }
 }

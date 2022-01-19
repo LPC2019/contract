@@ -126,22 +126,25 @@
           if($contract->appointedParty!=$this->app->user->account){
             common::printIcon('contract', 'Submit', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
             echo "<div class='divider'></div>";  
-            common::printIcon('contract', 'editInvoice', $params, $product);
+            common::printIcon('contract', 'editinvoice', "invoiceID=".$invoice->id, "test");
             echo "<div class='divider'></div>";  
             common::printIcon('contract', 'deleteInvoice', $params, $product, 'button', 'trash', 'hiddenwin');
           }
-          
         }else if($invoice->status=='submitted') {
+          if(in_array($this->app->user->account,$approver)){// can user approve?
             common::printIcon('contract', 'Approve', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
+            common::printIcon('contract', 'Reject', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
+          }
         }else if($invoice->status=='rejected') {// should only deleted by appointedParty Or CM? 
-            common::printIcon('product', 'deleteInvoice', $params, $product, 'button', 'trash', 'hiddenwin');
+            common::printIcon('contract', 'deleteInvoice', "invoiceID=".$invoice->id, $invoice, 'button', 'trash', 'hiddenwin');
 
-        }
-     
+        }else if($invoice->status=='approved') {
+            common::printIcon('contract', 'payment', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
+            
+        }else{
+            common::printIcon('contract', 'export', "invoiceID=".$invoice->id, $invoice,'button', '', '', 'iframe', true);
 
-
-
-        
+        }   
         ?>
       </div>
     </div>
