@@ -27,6 +27,13 @@ SET time_zone = "+00:00";
 -- 替換檢視表以便查看 `ztv_balance`
 -- (請參考以下實際畫面)
 --
+drop table if exists ztv_balance;
+drop table if exists zt_approval;
+drop table if exists zt_contract;
+drop table if exists zt_invoice;
+drop table if exists zt_invoicedetails;
+
+
 CREATE TABLE `ztv_balance` (
 `id` int(11)
 ,`contractAmount` decimal(16,2)

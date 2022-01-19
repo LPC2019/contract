@@ -51,7 +51,6 @@ class contract extends control
     {
 
         $productID = $this->product->saveState($productID, $this->products);
-        var_dump($productID);
         $branch    = (int)$this->cookie->preBranch;
         $this->contract->setMenu($this->products, $productID);
 
@@ -289,8 +288,7 @@ class contract extends control
             if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
             $this->loadModel('action')->create('invoice', $invoice, 'opened');
             //$this->executeHooks($invoice);
-            $locate = $this->createLink("contract", 'invoice', "invoice=$contract");
-        $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess) /*, 'locate' => $locate)*/ );
+        $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess,'locate' => inlink('invoiceview', "invoice=$invoice") ) );
 
         }
 
@@ -1096,14 +1094,15 @@ class contract extends control
      */
     public function invoicelist($contractID = 0, $line = 0, $status = 'noclosed', $orderBy = 'order_desc', $recTotal = 0, $recPerPage = 10, $pageID = 1)
     {
-        $this->session->set('productList', $this->app->getURI(true));
+
+        //pleases help to fix the fucking pager
+        
+       // $this->session->set('productList', $this->app->getURI(true));
         $productID = $this->product->saveState($productID, $this->products);
-        $this->product->setMenu($this->products, $productID);
- 
-        /* Load pager and get tasks. */
+        $this->product->setMenu($this->products, $productID);// may be add more col for select contract
         $this->app->loadClass('pager', $static = true);
-        $pager = new pager($recTotal, $recPerPage, $pageID);
-    
+        $pager = new pager(0, $recPerPage, $pageID);
+
 
         /* Save this url to session. */
         $uri = $this->app->getURI(true);
@@ -1130,22 +1129,21 @@ class contract extends control
      * View an invoice. 2022.1.10
      *
      * @param  int    $invoiceID
-     * @param  int    $contractID
+     * @param  int    $contractID why need this?
      * @access public
      * 
      * @return void
      */
-    public function invoiceview($invoiceID, $contractID)
+    public function invoiceview($invoiceID)
     {
-        //$product = $this->product->getStatByID($productID);
-        //if(!$product) die(js::error($this->lang->notFound) . js::locate('back'));
-
-        //$product->desc = $this->loadModel('file')->setImgSize($product->desc);
-        //$this->product->setMenu($this->products, $productID);
+        //access control
 
         //For Invoice 2022.1.13
         $invoice = $this->contract->getInvoiceStatByID($invoiceID);
-        if(!$invoice) die(js::error($this->lang->notFound) . js::locate('back'));
+        if(!$invoice) die(js::error($this->lang->notFound).js::locate('back'));
+
+        //get approval list
+        $approvals=$this->contract->getApprovalList($invoiceID,'invoice');
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
@@ -1167,6 +1165,7 @@ class contract extends control
 
         //For invoice 2022.1.13
         $this->view->invoice    = $invoice;
+        $this->view->approvals  = $approvals;
         
         $this->display();
     }

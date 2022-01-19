@@ -68,7 +68,8 @@
               <?php //endif;?>
               <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
             </th>
-            <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->contract->contractID);?></th>
+            
+            <!--<th><?php common::printOrderLink('name', $orderBy, $vars, $lang->contract->contractID);?></th>-->
             <th class='w-110px text-left'><?php //common::printOrderLink('line', $orderBy, $vars, $lang->product->line);?></th>
             <th class='w-130px' title='<?php echo $lang->contract->eoRef;?>'><?php echo $lang->contract->eoRef;?></th>
             <th class='w-80px' title='<?php echo $lang->invoice->status;?>'><?php echo $lang->invoice->status;?></th>
@@ -82,17 +83,12 @@
           </tr>
         </thead>
         <tbody class="sortable" id="productTableList">
-        <?php //foreach($productStats as $product):
-              foreach($invoiceStats as $invoice):?>
+        <?php foreach($invoiceStats as $invoice):?>
         <tr data-id='<?php echo $invoice->id ?>' data-order='<?php echo $invoice->id;?>'>
           <td class='c-id'>
-            <?php //if($canBatchEdit):?>
-            <?php //echo html::checkbox('productIDList', array($product->id => sprintf('%03d', $product->id)));?>
-            <?php //else:?>
-            <?php printf('%03d', $invoice->id);?>
-            <?php //endif;?>
+            <?php echo html::a($this->createLink('contract', 'invoiceview', "contract=" . $invoice->id ),   $invoice->id );?>
           </td>
-          <td class="c-name" title='<?php echo $invoice->contractID?>'><?php echo html::a($this->createLink('contract', 'invoiceview', "contract=" . $invoice->id."-"."$invoice->contractID" ), $invoice->contractID);?></td> <!-- changed the hyperlink to invoiceview 2020.1.10-->
+         <!-- <td class="c-name" title='<?php echo $invoice->contractID?>'><?php echo html::a($this->createLink('contract', 'invoiceview', "contract=" . $invoice->id."-"."$invoice->contractID" ), $invoice->contractID );?></td>--> <!-- changed the hyperlink to invoiceview 2020.1.10-->
           <!--<td title='<?php //echo zget($lines, $product->line, '')?>'><?php// echo zget($lines, $product->line, '');?></td>-->
           <td class='text-center'><?php //echo $product->stories['active'];?></td>
           <td class='text-center'><?php echo $invoice->refNo;?></td>

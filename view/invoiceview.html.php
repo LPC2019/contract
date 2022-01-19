@@ -120,23 +120,28 @@
       <div class="btn-toolbar">
         <?php
         $params = "product=$product->id";
-        $browseLink = $this->session->productList ? $this->session->productList : inlink('browse', "productID=$product->id");
+        $browseLink = inlink('invoicelist', "contractID=$invoice->contractID");
         common::printBack($browseLink);
-        if(!$product->deleted)
-        {
-            echo $this->buildOperateMenu($product, 'view');
+        if($invoice->status=='panding'){
+          if($contract->appointedParty!=$this->app->user->account){
+            common::printIcon('contract', 'Submit', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
+            echo "<div class='divider'></div>";  
+            common::printIcon('contract', 'editInvoice', $params, $product);
+            echo "<div class='divider'></div>";  
+            common::printIcon('contract', 'deleteInvoice', $params, $product, 'button', 'trash', 'hiddenwin');
+          }
+          
+        }else if($invoice->status=='submitted') {
+            common::printIcon('contract', 'Approve', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
+        }else if($invoice->status=='rejected') {// should only deleted by appointedParty Or CM? 
+            common::printIcon('product', 'deleteInvoice', $params, $product, 'button', 'trash', 'hiddenwin');
 
-            echo "<div class='divider'></div>";
-
-            if($product->status != 'closed')
-            {
-                common::printIcon('product', 'close', $params, $product, 'button', '', '', 'iframe', true);
-                echo "<div class='divider'></div>";
-            }
-
-            common::printIcon('product', 'edit', $params, $product);
-            common::printIcon('product', 'delete', $params, $product, 'button', 'trash', 'hiddenwin');
         }
+     
+
+
+
+        
         ?>
       </div>
     </div>
@@ -149,6 +154,7 @@
             <!--<h2 class="detail-title"><span class="label-id"><?php //$lang->invoice->AccountStatus;?></span> <span class="label label-light label-outline"><?php //echo $product->code;?></span> <?php //echo $product->name;?></h2>-->
             <div class="detail-title"><strong><?php echo $lang->invoice->AccountStatus.':'.' '.$invoice->status;?></strong></div>
             <div class="detail-content article-content">
+              <?php var_dump($approvals);?>
               <!--<p><span class="text-limit" data-limit-size="40"><?php //echo $product->desc;?></span><a class="text-primary text-limit-toggle small" data-text-expand="<?php //echo $lang->expand;?>"  data-text-collapse="<?php //echo $lang->collapse;?>"></a></p>-->
               <!--<p>
                 <span class="label label-primary label-outline"><?php //echo $lang->product->typeAB . ':' . zget($lang->product->typeList, $product->type);?></span>
