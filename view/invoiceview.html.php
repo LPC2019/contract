@@ -142,7 +142,7 @@
             common::printIcon('contract', 'payment', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
             
         }else{
-            common::printIcon('contract', 'export', "invoiceID=".$invoice->id, $invoice,'button', '', '', 'iframe', true);
+            common::printIcon('contract', 'exportpdf', "invoiceID=".$invoice->id, $invoice,'button', '', '', 'iframe', true);
 
         }   
         ?>

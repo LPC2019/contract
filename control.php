@@ -968,8 +968,9 @@ class contract extends control
         //$approval->signature=user::getSign();
 
         $approval->status="approved";
-        $approval->description=$_POST['description'];
         //add desc
+        $approval->description=$_POST['description'];
+        $approval->signature=$this->app->user->sign;
         $this->dao->update("zt_approval")->data($approval)->where('id')->eq($approval->id)->exec();
         $sameStep = $this->dao->select('*')->from('zt_approval')//check approve stage
         ->where('`order`')->eq($approval->order)
@@ -1160,9 +1161,16 @@ class contract extends control
         $this->view->invoice    = $invoice;
         $this->view->approvals  = $approvals;
         $approver=array();// get who can approve/reject
-        foreach($approvals[$invoice->step] as $value){
-            array_push($approver,$value->user);
+        if(count($approvals)>1){
+            foreach($approvals[$invoice->step] as $value){
+                array_push($approver,$value->user);
+            }
+        }else{
+            
+                array_push($approver,$approvals[$invoice->step]->user);
+            
         }
+
         $this->view->approver=$approver;
 
         
@@ -1215,7 +1223,6 @@ class contract extends control
         $asset=$this->loadModel('product')->getByID($contract->assetID);
         $this->contract->setMenu($this->products, $contract->assetID);
         
-        $this->contract->setMenu($this->products, $contract->assetID);
 
 
         if($this->app->user->account!=$contract->contractManager || $this->app->user->account!='admin'){// check user role
@@ -1242,5 +1249,46 @@ class contract extends control
         $this->view->invoice=$invoice;
         $this->view->asset=$asset;
         $this->display();
+    }
+    public function exportpdf($invoiceID)// for contract manager to do the payment(no transaction!!)
+    {
+        $invoice=$this->contract->getById($invoiceID);
+        $invoice=(array)$invoice;
+        $asset=$this->loadModel('product')->getByID($contract->assetID);
+        $contract=$this->contract->getContractByID($invoice->contractID);
+        $contract=(array)$contract;
+        $invoiceDetails=$this->dao->select('*')->from("zt_invoicedetails")->where('invoiceID')->eq($invoice['id'])->fetchALL('id');
+        $approval=$this->dao->select("*")->from("zt_approval")->where('objectType')->eq('invoice')->andWhere('objectID')->eq($invoice['id'])->orderBy('order')->fetchALL('id');
+        $finance=$this->dao->select("*")->from("ztv_balance")->where('id')->eq($contract['id'])->fetch();
+        
+        $sc=$this->loadModel('file')->getByObject('invoice',$invoice['id']);
+
+        $message=array();
+        $message['assetName']=$asset->name;
+        $message['contract']=array();
+        $message['contract']['contractName']=$contract['contractName'];
+        $message['contract']['refNo']=$contract['refNo'];
+        $message['contract']['appointedParty']=$contract['appointedParty'];
+        $message['contract']['contractManager']=$contract['contractManager'];
+        $message['contract']['amount']=$contract['amount'];
+        $message['invoice']=array();
+        $message['invoice']['id']=$invoice['id'];
+        $message['invoice']['status']=$invoice['status'];
+        $message['invoice']['description']=$invoice['description'];
+        $message['invoice']['refNo']=$invoice['refNo'];
+        $message['invoice']['amount']=$invoice['amount'];
+        $message['invoice']['details']=$invoiceDetails;
+        $message['approval']=$approval;
+        $message['softcopy']=array_values($sc)['0']->webPath;
+        $message['financeData']=$finance;
+
+        var_dump(json_encode($message));
+
+
+
+
+    
+
+
     }
 }
