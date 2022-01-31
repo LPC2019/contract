@@ -849,7 +849,7 @@ class contract extends control
             echo "<script>history.back()</script>";
             die();
         }
-        if($invoice->status!='panding'){
+        if($invoice->status!='pending'){
             echo js::alert("The invoice is not ready for submit, Pleases check the status");
             echo "<script>history.back()</script>";
             die();
@@ -897,9 +897,8 @@ class contract extends control
     {
 
         $invoice=$this->contract->getByID($invoiceID);
-        if($invoice->status!='panding'){
+        if($invoice->status!='pending'){
             echo js::alert("This invoice can not be delete");
-           // echo "<script>history.back()</script>";
             die();
         }
         $contract=$this->dao->select('*')->from('zt_contract')->where('id')->eq($invoice->contractID)->fetch();
@@ -1180,7 +1179,7 @@ class contract extends control
     {
  
         $invoice=$this->contract->getById($invoiceID);
-        if($invoice->status!='panding'){
+        if($invoice->status!='pending'){
             echo js::alert('You can\'t edit this invoice now');
             $this->send(array('result' => 'fail', 'message' => "You can't edit this invoice now", 'locate' => inlink('invoicelist', "invoice=$invoiceID")));
         }
@@ -1266,6 +1265,8 @@ class contract extends control
         $message=array();
         $message['assetName']=$asset->name;
         $message['contract']=array();
+        $message['contract']['id']=$contract['id'];
+        $message['contract']['desc']=$contract['contractName'];
         $message['contract']['contractName']=$contract['contractName'];
         $message['contract']['refNo']=$contract['refNo'];
         $message['contract']['appointedParty']=$contract['appointedParty'];
@@ -1278,6 +1279,7 @@ class contract extends control
         $message['invoice']['refNo']=$invoice['refNo'];
         $message['invoice']['amount']=$invoice['amount'];
         $message['invoice']['details']=$invoiceDetails;
+        $message['invoice']['payment']=$invoice['paymentNo'];
         $message['approval']=$approval;
         $message['softcopy']=array_values($sc)['0']->webPath;
         $message['financeData']=$finance;

@@ -420,7 +420,7 @@ class contractModel extends model
     {
         $invoice = fixer::input('post')
             ->setDefault('lastEdit', helper::now())
-            ->setDefault('status', 'panding')
+            ->setDefault('status', 'pending')
             ->remove('uid')
             ->remove('item')
             ->remove('labels')
