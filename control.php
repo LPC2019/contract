@@ -98,7 +98,7 @@ class contract extends control
      * @access public
      * @return void
      */
-    public function browse($productID = 0, $branch = '', $browseType = '', $param = 0, $storyType = 'story', $orderBy = '', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    public function browse($productID = 0, $branch = '', $browseType = '', $param = 0, $storyType = 'contract', $orderBy = '', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Lower browse type. */
         $browseType = strtolower($browseType);
@@ -106,21 +106,16 @@ class contract extends control
         /* Load datatable. */
         $this->loadModel('datatable');
 
-        /* Save session. */
+        /* Save session. 
         $this->session->set('storyList',   $this->app->getURI(true));
         $this->session->set('productList', $this->app->getURI(true));
-
+        */
         /* Set product, module and query. */
         $productID = $this->product->saveState($productID, $this->products);
         $branch    = ($branch === '') ? (int)$this->cookie->preBranch : (int)$branch;
         setcookie('preProductID', $productID, $this->config->cookieLife, $this->config->webRoot, '', false, true);
         setcookie('preBranch', (int)$branch, $this->config->cookieLife, $this->config->webRoot, '', false, true);
 
-        if($this->cookie->preProductID != $productID or $this->cookie->preBranch != $branch or $browseType == 'bybranch')
-        {
-            $_COOKIE['storyModule'] = 0;
-            setcookie('storyModule', 0, 0, $this->config->webRoot, '', false, false);
-        }
 
         if($browseType == 'bymodule' or $browseType == '')
         {
@@ -129,7 +124,6 @@ class contract extends control
             setcookie('storyBranch', 0, 0, $this->config->webRoot, '', false, false);
             if($browseType == '') setcookie('treeBranch', (int)$branch, 0, $this->config->webRoot, '', false, false);
         }
-        if($browseType == 'bybranch') setcookie('storyBranch', (int)$branch, 0, $this->config->webRoot, '', false, false);
 
         $moduleID = ($browseType == 'bymodule') ? (int)$param : (($browseType == 'bysearch' or $browseType == 'bybranch') ? 0 : ($this->cookie->storyModule ? $this->cookie->storyModule : 0));
         $queryID  = ($browseType == 'bysearch') ? (int)$param : 0;
@@ -138,16 +132,12 @@ class contract extends control
         $this->product->setMenu($this->products, $productID, $branch);
 
         /* Set moduleTree. */
-        $createModuleLink = $storyType == 'story' ? 'createStoryLink' : 'createRequirementLink';
+        $createModuleLink =  'createContractLink';
         if($browseType == '')
         {
             setcookie('treeBranch', (int)$branch, 0, $this->config->webRoot, '', false, false);
             $browseType = 'unclosed';
             $moduleTree = $this->tree->getTreeMenu($productID, $viewType = 'story', $startModuleID = 0, array('treeModel', $createModuleLink), '', $branch);
-        }
-        else
-        {
-            $moduleTree = $this->tree->getTreeMenu($productID, $viewType = 'story', $startModuleID = 0, array('treeModel', $createModuleLink), '', (int)$this->cookie->treeBranch);
         }
 
         if($browseType != 'bymodule' and $browseType != 'bybranch') $this->session->set('storyBrowseType', $browseType);
@@ -164,40 +154,21 @@ class contract extends control
         $this->app->loadClass('pager', $static = true);
         $pager = new pager($recTotal, $recPerPage, $pageID);
 
-        /* Get stories. */
-        $stories = $this->product->getStories($productID, $branch, $browseType, $queryID, $moduleID, $storyType, $sort, $pager);
-
+  
         /* Process the sql, get the conditon partion, save it to session. */
         $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'story', $browseType != 'bysearch');
-
-        /* Get related tasks, bugs, cases count of each story. */
-        $storyIdList = array();
-        foreach($stories as $story)
-        {
-            $storyIdList[$story->id] = $story->id;
-            if(!empty($story->children))
-            {
-                foreach($story->children as $child) $storyIdList[$child->id] = $child->id;
-            }
-        }
-        $storyTasks = $this->loadModel('task')->getStoryTaskCounts($storyIdList);
-        $storyBugs  = $this->loadModel('bug')->getStoryBugCounts($storyIdList);
-        $storyCases = $this->loadModel('testcase')->getStoryCaseCounts($storyIdList);
-
-        /* Change for requirement story title. */
-        if($storyType == 'requirement' and !empty($this->config->URAndSR))
-        {
-            $this->lang->story->title = str_replace($this->lang->SRCommon, $this->lang->URCommon, $this->lang->story->title);
-            $this->config->product->search['fields']['title'] = $this->lang->story->title;
-        }
 
         /* Build search form. */
         $actionURL = $this->createLink('product', 'browse', "productID=$productID&branch=$branch&browseType=bySearch&queryID=myQueryID&storyType=$storyType");
         $this->config->product->search['onMenuBar'] = 'yes';
         $this->product->buildSearchForm($productID, $this->products, $queryID, $actionURL);
 
-        $showModule = !empty($this->config->datatable->productBrowse->showModule) ? $this->config->datatable->productBrowse->showModule : '';
-        $this->view->modulePairs = $showModule ? $this->tree->getModulePairs($productID, 'story', $showModule) : array();
+
+        $contracts=$this->dao->select('*')->from("zt_contract")->where('assetID')->eq($productID)->andWhere('deleted')->eq('0')->fetchALL();
+        $this->view->contracts=$contracts;
+      
+
+
 
         /* Assign. */
         $this->view->title         = $this->products[$productID]. $this->lang->colon . $this->lang->product->browse;
@@ -216,12 +187,7 @@ class contract extends control
         $this->view->users         = $this->user->getPairs('noletter|pofirst|nodeleted');
         $this->view->orderBy       = $orderBy;
         $this->view->browseType    = $browseType;
-        $this->view->modules       = $this->tree->getOptionMenu($productID, $viewType = 'story', 0, $branch);
-        $this->view->moduleID      = $moduleID;
-        $this->view->moduleName    = $moduleID ? $this->tree->getById($moduleID)->name : $this->lang->tree->all;
         $this->view->branch        = $branch;
-        $this->view->branches      = $this->loadModel('branch')->getPairs($productID);
-        $this->view->storyStages   = $this->product->batchGetStoryStage($stories);
         $this->view->setModule     = true;
         $this->view->storyTasks    = $storyTasks;
         $this->view->storyBugs     = $storyBugs;

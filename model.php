@@ -1321,5 +1321,163 @@ class contractModel extends model
         $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();// update invoice record
         return true;
     }
+    public function printCell($col, $contract, $users)
+    {
+        $canBatchEdit         = common::hasPriv('contract', 'batchEdit');
+        $canBatchAction       = ($canBatchEdit);
+
+        $canView   = common::hasPriv('contract', 'view');
+        $storyLink = helper::createLink('contract', 'view', "contract=$contract->id");
+        $account   = $this->app->user->account;
+        $id        = $col->id;
+        if($col->show)
+        {
+            $class = "c-{$id}";
+            $title = '';
+            $style = '';
+
+            if($id == 'openedBy')
+            {
+                $title = zget($users, $story->openedBy, $story->openedBy);
+            }elseif($id == 'title')
+            {
+                $title = $contract->title;
+            }
+
+            echo "<td class='" . $class . "' title='$title' style='$style'>";
+           // if(isset($this->config->bizVersion)) $this->loadModel('flow')->printFlowCell('contract', $contract, $id);
+            switch($id)
+            {
+            case 'id':
+                if($canBatchAction)
+                {
+                    echo html::checkbox('contractIdList', array($contract->id => '')) . html::a(helper::createLink('contract', 'view', "storyID=$contract->id") , sprintf('%03d', $contract->id));
+                }
+                else
+                {
+                    printf('%03d', $story->id);
+                }
+                break;
+            case 'pri':
+                echo "<span class='label-pri label-pri-" . $story->pri . "' title='" . zget($this->lang->story->priList, $story->pri, $story->pri) . "'>";
+                echo zget($this->lang->story->priList, $story->pri, $story->pri);
+                echo "</span>";
+                break;
+            case 'title':
+                echo  html::a($storyLink, $contract->contractName, '', "style='color: $contract->color'");
+                break;
+            case 'RefNo':
+                echo   $contract->refNo;
+                break;
+            case 'plan':
+                echo isset($story->planTitle) ? $story->planTitle : '';
+                break;
+            case 'branch':
+                echo zget($branches, $story->branch, '');
+                break;
+            case 'keywords':
+                echo $story->keywords;
+                break;
+            case 'source':
+                echo zget($this->lang->story->sourceList, $story->source, $story->source);
+                break;
+            case 'sourceNote':
+                echo $story->sourceNote;
+                break;
+            case 'status':
+                echo "<span class='status-{$contract->status}'>";
+                echo $contract->status;
+                echo '</span>';
+                break;
+            case 'estimate':
+                echo $story->estimate;
+                break;
+            case 'stage':
+                if(isset($storyStages[$story->id]) and !empty($branches))
+                {
+                    echo "<div class='dropdown dropdown-hover'>";
+                    echo $this->lang->story->stageList[$story->stage];
+                    echo "<span class='caret'></span>";
+                    echo "<ul class='dropdown-menu pull-right'>";
+                    foreach($storyStages[$story->id] as $storyBranch => $storyStage)
+                    {
+                        if(isset($branches[$storyBranch])) echo '<li class="text-ellipsis">' . $branches[$storyBranch] . ": " . $this->lang->story->stageList[$storyStage->stage] . '</li>';
+                    }
+                    echo "</ul>";
+                    echo '</div>';
+                }
+                else
+                {
+                    echo $this->lang->story->stageList[$story->stage];
+                }
+                break;
+            case 'taskCount':
+                $tasksLink = helper::createLink('story', 'tasks', "storyID=$story->id");
+                $storyTasks[$story->id] > 0 ? print(html::a($tasksLink, $storyTasks[$story->id], '', 'class="iframe"')) : print(0);
+                break;
+            case 'bugCount':
+                $bugsLink = helper::createLink('story', 'bugs', "storyID=$story->id");
+                $storyBugs[$story->id] > 0 ? print(html::a($bugsLink, $storyBugs[$story->id], '', 'class="iframe"')) : print(0);
+                break;
+            case 'caseCount':
+                $casesLink = helper::createLink('story', 'cases', "storyID=$story->id");
+                $storyCases[$story->id] > 0 ? print(html::a($casesLink, $storyCases[$story->id], '', 'class="iframe"')) : print(0);
+                break;
+            case 'openedBy':
+                echo zget($users, $story->openedBy, $story->openedBy);
+                break;
+            case 'openedDate':
+                echo substr($story->openedDate, 5, 11);
+                break;
+            case 'assignedTo':
+                $this->printAssignedHtml($story, $users);
+                break;
+            case 'assignedDate':
+                echo substr($story->assignedDate, 5, 11);
+                break;
+            case 'reviewedBy':
+                echo $story->reviewedBy;
+                break;
+            case 'reviewedDate':
+                echo substr($story->reviewedDate, 5, 11);
+                break;
+            case 'closedBy':
+                echo zget($users, $story->closedBy, $story->closedBy);
+                break;
+            case 'closedDate':
+                echo substr($story->closedDate, 5, 11);
+                break;
+            case 'closedReason':
+                echo zget($this->lang->story->reasonList, $story->closedReason, $story->closedReason);
+                break;
+            case 'lastEditedBy':
+                echo zget($users, $story->lastEditedBy, $story->lastEditedBy);
+                break;
+            case 'lastEditedDate':
+                echo substr($story->lastEditedDate, 5, 11);
+                break;
+            case 'mailto':
+                $mailto = explode(',', $story->mailto);
+                foreach($mailto as $account)
+                {
+                    $account = trim($account);
+                    if(empty($account)) continue;
+                    echo zget($users, $account) . ' &nbsp;';
+                }
+                break;
+            case 'version':
+                echo $story->version;
+                break;
+            case 'actions':
+                $vars = "story={$story->id}";
+                common::printIcon('story', 'edit',       $vars, $story, 'list');
+                common::printIcon('story', 'close',      $vars, $story, 'list', '', '', 'iframe', true);
+                common::printIcon('story', 'create', "productID=$story->product&branch=$story->branch&module=0&storyID=$story->id", $story, 'list', 'treemap-alt', '', '', '', '', $this->lang->story->subdivide);
+                break;
+            }
+            echo '</td>';
+        }
+    }
+
 }
 
