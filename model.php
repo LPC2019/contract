@@ -38,7 +38,6 @@ class contractModel extends model
         $currentModule = $this->app->getModuleName();
         $currentMethod = $this->app->getMethodName();
         $selectHtml = $this->select($products, $productID, $currentModule, $currentMethod, $extra, $branch, $module, $moduleType);
-
         $label = $this->lang->product->index;
         if($this->config->global->flow != 'full') $label = $this->lang->product->all;
         if($currentModule == 'product' && $currentMethod == 'all')    $label = $this->lang->product->all;
@@ -124,7 +123,7 @@ class contractModel extends model
                 }
 */
         if(!$isMobile) $output .= '</div>';
-
+  
         return $output;
     }
 
@@ -996,58 +995,11 @@ class contractModel extends model
      * @access public
      * @return string.
      */
-    public function summary($stories, $storyType = 'story')
+    public function summary($objects, $storyType = 'contract')
     {
-        $totalEstimate = 0.0;
-        $storyIdList   = array();
-
-        $rateCount = 0;
-        $allCount  = 0;
-        foreach($stories as $key => $story)
-        {
-            if(!empty($story->type) && $story->type != $storyType) continue;
-
-            $totalEstimate += $story->estimate;
-            /* When the status is not closed or closedReason is done or postponed then add cases rate..*/
-            if(
-                $story->status != 'closed' or
-                ($story->status == 'closed' and ($story->closedReason == 'done' or $story->closedReason == 'postponed'))
-            )
-            {
-                $storyIdList[] = $story->id;
-                $rateCount ++;
-            }
-
-            $allCount ++;
-            if(!empty($story->children))
-            {
-                foreach($story->children as $child)
-                {
-                    if($child->type != $storyType) continue;
-
-                    if(
-                        $child->status != 'closed' or
-                        ($child->status == 'closed' and ($child->closedReason == 'done' or $child->closedReason == 'postponed'))
-                    )
-                    {
-                        $storyIdList[] = $child->id;
-                        $rateCount ++;
-                    }
-                    $allCount ++;
-                }
-            }
-        }
-
-        $cases = $this->dao->select('story')->from(TABLE_CASE)->where('story')->in($storyIdList)->andWhere('deleted')->eq(0)->fetchAll('story');
-        $rate  = count($stories) == 0 || $rateCount == 0 ? 0 : round(count($cases) / $rateCount, 2);
-
-        $storyCommon = $this->lang->storyCommon;
-        if(!empty($this->config->URAndSR))
-        {
-            if($storyType == 'requirement') $storyCommon = $this->lang->URCommon;
-            if($storyType == 'story') $storyCommon = $this->lang->SRCommon;
-        }
-        return sprintf($this->lang->product->storySummary, $allCount,  $storyCommon, $totalEstimate, $rate * 100 . "%");
+        
+        $common = $storyType=='contract'?$this->lang->contract->common:$this->lang->invoice->common;
+        return sprintf($storyType=='contract'?$this->lang->contract->contractSummary:$this->lang->invoice->contractSummary, count($objects),  $common);
     }
 
     /**
@@ -1419,9 +1371,10 @@ class contractModel extends model
                 $bugsLink = helper::createLink('story', 'bugs', "storyID=$story->id");
                 $storyBugs[$story->id] > 0 ? print(html::a($bugsLink, $storyBugs[$story->id], '', 'class="iframe"')) : print(0);
                 break;
-            case 'caseCount':
-                $casesLink = helper::createLink('story', 'cases', "storyID=$story->id");
-                $storyCases[$story->id] > 0 ? print(html::a($casesLink, $storyCases[$story->id], '', 'class="iframe"')) : print(0);
+            case 'invoiceCount':
+                $invoiceLink = helper::createLink('contract', 'invoiceList', "contract=$contract->id");
+                //$storyCases[$story->id] > 0 ? print(html::a($casesLink, $storyCases[$story->id], '', 'class="iframe"')) : print(0);
+                //get invoice count by contract(i.e. submited)
                 break;
             case 'openedBy':
                 echo zget($users, $story->openedBy, $story->openedBy);
@@ -1468,11 +1421,21 @@ class contractModel extends model
             case 'version':
                 echo $story->version;
                 break;
+            case 'appointedParty':
+                echo $contract->appointedParty;
+                break;
+            case 'contractManager':
+                echo $contract->contractManager;
+                break;
             case 'actions':
-                $vars = "story={$story->id}";
-                common::printIcon('story', 'edit',       $vars, $story, 'list');
-                common::printIcon('story', 'close',      $vars, $story, 'list', '', '', 'iframe', true);
-                common::printIcon('story', 'create', "productID=$story->product&branch=$story->branch&module=0&storyID=$story->id", $story, 'list', 'treemap-alt', '', '', '', '', $this->lang->story->subdivide);
+                $vars = "story={$contract->id}";
+                if($this->app->user->account==$contract->contractManager || $this->app->user->account=="admin"){
+                    common::printIcon('contract', 'edit',$vars, $contract, 'list');
+                    common::printIcon('contract', 'finish',$vars, $contract, 'list', '', '', 'iframe', true);
+                }
+                if($this->app->user->account==$contract->appointedParty || $this->app->user->account=="admin"){
+                    common::printIcon('contract', 'createinvoice',$vars,  $this->lang->story->subdivide);
+                }
                 break;
             }
             echo '</td>';

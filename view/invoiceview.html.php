@@ -122,8 +122,8 @@
         $params = "product=$product->id";
         $browseLink = inlink('invoicelist', "contractID=$invoice->contractID");
         common::printBack($browseLink);
-        if($invoice->status=='panding'){
-          if($contract->appointedParty!=$this->app->user->account){
+        if($invoice->status=='pending'){
+          if($contract->appointedParty==$this->app->user->account||$contract->appointedParty=='admin'){
             common::printIcon('contract', 'Submit', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
             echo "<div class='divider'></div>";  
             common::printIcon('contract', 'editinvoice', "invoiceID=".$invoice->id, "test");
@@ -131,8 +131,9 @@
             common::printIcon('contract', 'deleteInvoice', $params, $product, 'button', 'trash', 'hiddenwin');
           }
         }else if($invoice->status=='submitted') {
-          if(in_array($this->app->user->account,$approver)){// can user approve?
-            common::printIcon('contract', 'Approve', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
+          if(in_array($this->app->user->account,$approver) || $this->app->user->account=='admin'){// can user approve?
+            $u=$this->dao->select('*')->from('zt_approval')->where('objectID')->eq($invoice->id)->andWhere('objectType')->eq('invoice')->andWhere("User")->eq($this->app->user->account)->fetch();
+            $u->sign==0?common::printIcon('contract', 'Approve', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true):common::printIcon('contract', 'ApproveWithSign', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
             common::printIcon('contract', 'Reject', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
           }
         }else if($invoice->status=='rejected') {// should only deleted by appointedParty Or CM? 
@@ -141,7 +142,7 @@
         }else if($invoice->status=='approved') {
             common::printIcon('contract', 'payment', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
             
-        }else{
+        }else if($invoice->status=='paid'){
             common::printIcon('contract', 'exportpdf', "invoiceID=".$invoice->id, $invoice,'button', '', '', 'iframe', true);
 
         }   

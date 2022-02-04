@@ -100,6 +100,7 @@ class contract extends control
      */
     public function browse($productID = 0, $branch = '', $browseType = '', $param = 0, $storyType = 'contract', $orderBy = '', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
+        $this->contract->setMenu($this->products, $productID);
         /* Lower browse type. */
         $browseType = strtolower($browseType);
 
@@ -150,10 +151,7 @@ class contract extends control
         /* Append id for secend sort. */
         $sort = $this->loadModel('common')->appendOrder($orderBy);
 
-        /* Load pager. */
-        $this->app->loadClass('pager', $static = true);
-        $pager = new pager($recTotal, $recPerPage, $pageID);
-
+ 
   
         /* Process the sql, get the conditon partion, save it to session. */
         $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'story', $browseType != 'bysearch');
@@ -167,11 +165,14 @@ class contract extends control
         $contracts=$this->dao->select('*')->from("zt_contract")->where('assetID')->eq($productID)->andWhere('deleted')->eq('0')->fetchALL();
         $this->view->contracts=$contracts;
       
-
+       /* Load pager. */
+       $this->app->loadClass('pager', $static = true);
+       $pager = new pager(count($contracts), '20', $pageID);
+       
 
 
         /* Assign. */
-        $this->view->title         = $this->products[$productID]. $this->lang->colon . $this->lang->product->browse;
+        $this->view->title         = $this->products[$productID]. $this->lang->colon . $this->lang->contract->browse;
         $this->view->position[]    = $this->products[$productID];
         $this->view->position[]    = $this->lang->product->browse;
         $this->view->productID     = $productID;
@@ -180,7 +181,7 @@ class contract extends control
         $this->view->moduleID      = $moduleID;
         $this->view->stories       = $stories;
         $this->view->plans         = $this->loadModel('productplan')->getPairs($productID, $branch);
-        $this->view->summary       = $this->product->summary($stories, $storyType);
+        $this->view->summary       = $this->contract->summary($contracts, "contract");
         $this->view->moduleTree    = $moduleTree;
         $this->view->parentModules = $this->tree->getParents($moduleID);
         $this->view->pager         = $pager;
@@ -238,7 +239,7 @@ class contract extends control
         $this->view->rootID     = $rootID;
         $this->display();
     }
-    public function createInvoice()
+    public function createInvoice($contractID='0')
     {
         if(!empty($_POST))
         {
@@ -269,6 +270,7 @@ class contract extends control
         }
         $this->view->contractOption=$contractOption;
         $this->loadModel('user');
+        $this->view->contract=$contractID;
         $poUsers = $this->user->getPairs('nodeleted|noclosed',  '', $this->config->maxCount);
         /* need to set which user should be select*/
         $this->view->title      = $this->lang->product->create;
@@ -643,7 +645,7 @@ class contract extends control
      */
     public function ajaxGetDropMenu($productID, $module, $method, $extra)
     {
-        $this->view->link      = $this->contract->getProductLink($module, $method, $extra);
+        $this->view->link      = $this->product->getProductLink($module, $method, $extra);
         $this->view->productID = $productID;
         $this->view->module    = $module;
         $this->view->method    = $method;
@@ -825,7 +827,8 @@ class contract extends control
         $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();
         $this->contract->submit($invoiceID,$contract->id);
         $this->loadModel('action')->create('invoice', $invoiceID, 'submitted');
-        die("<script>location.reload()</script>");
+        echo js::alert("success");
+        die(js::closeModal('parent.parent', 'this'));
 
     }
 
@@ -1108,7 +1111,7 @@ class contract extends control
         $pager = new pager(0, 30, 1);
 
         $this->executeHooks($productID);
-
+        $this->view->contract=$this->contract->getContractByID($invoice->contractID);
         $this->view->title      = $product->name . $this->lang->colon . $this->lang->product->view;
         $this->view->position[] = html::a($this->createLink($this->moduleName, 'browse'), $product->name);
         $this->view->position[] = $this->lang->product->view;
@@ -1126,16 +1129,13 @@ class contract extends control
         $this->view->invoice    = $invoice;
         $this->view->approvals  = $approvals;
         $approver=array();// get who can approve/reject
-        if(count($approvals)>1){
+        if(count($approvals[$invoice->step])>1){
             foreach($approvals[$invoice->step] as $value){
                 array_push($approver,$value->user);
             }
         }else{
-            
-                array_push($approver,$approvals[$invoice->step]->user);
-            
+                array_push($approver,$approvals[$invoice->step]->user);   
         }
-
         $this->view->approver=$approver;
 
         

@@ -24,7 +24,7 @@
         <tbody>
           <tr>
             <th class='w-140px'><?php echo $lang->contract->common;?></th>
-            <td><?php echo html::select('contractID', $contractOption, '4', "class='form-control chosen'");?></td><td></td>
+            <td><?php echo html::select('contractID', $contractOption, $contract, "class='form-control chosen'");?></td><td></td>
           </tr>
           <tr>
           <tr>

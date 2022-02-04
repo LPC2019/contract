@@ -12,9 +12,6 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/datatable.fix.html.php';?>
-<?php js::set('browseType', $browseType);?>
-<?php js::set('productID', $productID);?>
-<?php js::set('branch', $branch);?>
 <?php
 /* Set unfold parent taskID. */
 $this->app->loadLang('project');
@@ -99,18 +96,33 @@ $this->app->loadLang('project');
       $useDatatable = (isset($config->datatable->$datatableId->mode) and $config->datatable->$datatableId->mode == 'datatable');
       $vars         = "productID=$productID&branch=$branch&browseType=$browseType&param=$param&storyType=$storyType&orderBy=%s&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}";
 
-      if($useDatatable) include '../../common/view/datatable.html.php';
+      //if($useDatatable) include '../../common/view/datatable.html.php';
       $newSetting = $this->datatable->getSetting('product');
       $setting[0]=$newSetting[0];
       $setting[1]=$newSetting[2];
+      $setting[1]->title="Contract Name";
       $setting[2]=clone $newSetting[2];
-
       $setting[2]->order=4;
       $setting[2]->id="RefNo";
       $setting[2]->title="Ref.No.";
       $setting[2]->width="120";
-      $setting[3]=$newSetting[7];
-      $setting[4]=$newSetting[10];
+      $setting[2]->sort="no";
+      $setting[3]=clone $newSetting[2];
+      $setting[3]->order=2;
+      $setting[3]->sort="no";
+      $setting[3]->id="appointedParty";
+      $setting[3]->title="Appointed Party";
+      $setting[3]->width="150";
+      $setting[4]=clone $newSetting[2];
+      $setting[4]->order=2;
+      $setting[4]->sort="no";
+      $setting[4]->id="contractManager";
+      $setting[4]->title="Contract Manager";
+      $setting[4]->width="150";
+      $setting[5]=$newSetting[7];
+      $setting[5]->sort='no';     
+      $setting[6]=$newSetting[10];
+
       
       $widths  = $this->datatable->setFixedFieldWidth($setting);
       $columns = 0;
@@ -139,6 +151,9 @@ $this->app->loadLang('project');
               }
           }
           ?>
+          <script>
+             
+          </script>
           </tr>
         </thead>
         <tbody>
@@ -166,7 +181,6 @@ $this->app->loadLang('project');
             $disabled   = $canBatchEdit ? '' : "disabled='disabled'";
             $actionLink = $this->createLink('contract', 'batchEdit', "productID=$productID&projectID=0&branch=$branch");
             ?>
-            <?php echo html::commonButton($lang->edit, "data-form-action='$actionLink' $disabled");?>
             <button type='button' class='btn dropdown-toggle' data-toggle='dropdown'><span class='caret'></span></button>
             <ul class='dropdown-menu'>
               <?php
@@ -223,14 +237,9 @@ $(function()
 {
     // Update table summary text
     <?php
-    $storyCommon = $lang->storyCommon;
-    if(!empty($config->URAndSR))
-    {
-        if($storyType == 'requirement') $storyCommon = $lang->URCommon;
-        if($storyType == 'story') $storyCommon = $lang->SRCommon;
-    }
+    $contract = $lang->contract->common;
     ?>
-    var checkedSummary = '<?php echo str_replace('%storyCommon%', $storyCommon, $lang->product->checkedSummary)?>';
+    var checkedSummary = '<?php echo str_replace('%contractCommon%', $contract, $lang->contract->checkedSummary)?>';
     $('#productStoryForm').table(
     {
         statisticCreator: function(table)
@@ -239,7 +248,6 @@ $(function()
             var $originTable = table.isDataTable ? table.$.find('.datatable-origin') : null;
             var checkedTotal = $checkedRows.length;
             if(!checkedTotal) return;
-
             var checkedEstimate = 0;
             var checkedCase     = 0;
             $checkedRows.each(function()
@@ -253,10 +261,7 @@ $(function()
                 checkedEstimate += data.estimate;
                 if(data.cases > 0) checkedCase += 1;
             });
-            var rate = Math.round(checkedCase / checkedTotal * 10000 / 100) + '' + '%';
-            return checkedSummary.replace('%total%', checkedTotal)
-                  .replace('%estimate%', checkedEstimate.toFixed(1))
-                  .replace('%rate%', rate);
+            return checkedSummary.replace('%total%', checkedTotal);
         }
     });
 });

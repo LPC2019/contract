@@ -212,3 +212,7 @@ $lang->invoice->item               = 'Item';
 $lang->invoice->price              = 'Price';
 $lang->invoice->edit               = 'Edit';
 
+
+$lang->contract->contractSummary   = "Total <strong>%s</strong> %s on this page.";
+$lang->contract->checkedSummary = "<strong>%total%</strong> %contractCommon% selected";
+$lang->contract->browse       = "{$lang->contract->common} List";
