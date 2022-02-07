@@ -162,31 +162,6 @@ $lang->product->moreSelects['willclose']    = $lang->product->willClose;
 $lang->product->moreSelects['closedstory']  = $lang->product->closedStory;
 
 
-$lang->contract->common ='Contract';
-$lang->contract->create ='Create Contract';
-$lang->contract->name   ='Contract Name';
-$lang->contract->desc   ="Description";
-$lang->contract->amount ="Total Amount";
-$lang->contract->eoRef  ="Reference Number";
-$lang->contract->ap     ="Appointed Party";
-$lang->contract->cm     ="Contract Manager";
-$lang->contract->ras     ="Required Approvers";
-$lang->contract->startDate   ="Start Date";
-$lang->contract->endDate     ="End Date";
-$lang->contract->dateRange   ='Duration';
-
-
-
-
-
-
-$lang->contract->acl           = 'Access Control';
-$lang->contract->aclList['open']    = "Default (Users with privileges to {$lang->contract->common} can access it.)";
-$lang->contract->aclList['private'] = "Only who related to the contract can access";
-$lang->contract->aclList['custom']  = 'Custom (Team members and Whitelist members can access it.)';
-$lang->contract->whitelist          = "White List";
-$lang->contract->payment          = "Submit Payment";
-$lang->contract->paymentNo          = "Payment Number";
 
 
 
@@ -202,6 +177,8 @@ $lang->invoice->approve            = "approve";
 $lang->invoice->reject             = "reject";
 $lang->contract->contractID        = 'Contract ID';
 $lang->invoice->status             = 'Status';
+$lang->invoice->refNo             = 'Invoice Ref.No.';
+
 $lang->invoice->amount             = 'Amount';
 $lang->invoice->submitteddate      = 'Submitted date';
 $lang->invoice->step               = 'Step';
@@ -211,8 +188,48 @@ $lang->invoice->invoiceID          = 'Invoice ID';
 $lang->invoice->item               = 'Item';
 $lang->invoice->price              = 'Price';
 $lang->invoice->edit               = 'Edit';
+$lang->invoice->deleteInvoice ="Delete Invoice";
+$lang->invoice->editinvoice ="Edit Invoice";
 
 
+$lang->contract->common ='Contract';
+$lang->contract->create ='Create Contract';
+$lang->contract->name   ='Contract Name';
+$lang->contract->desc   ="Description";
+$lang->contract->amount ="Total Amount";
+$lang->contract->eoRef  ="Reference Number";
+$lang->contract->ap     ="Appointed Party";
+$lang->contract->cm     ="Contract Manager";
+$lang->contract->ras     ="Required Approvers";
+$lang->contract->startDate   ="Start Date";
+$lang->contract->endDate     ="End Date";
+$lang->contract->dateRange   ='Duration';
+$lang->contract->acl           = 'Access Control';
+$lang->contract->aclList['open']    = "Default (Users with privileges to {$lang->contract->common} can access it.)";
+$lang->contract->aclList['private'] = "Only who related to the contract can access";
+$lang->contract->aclList['custom']  = 'Custom (Team members and Whitelist members can access it.)';
+$lang->contract->whitelist          = "White List";
+$lang->contract->payment          = "Submit Payment";
+$lang->contract->paymentNo          = "Payment Number";
 $lang->contract->contractSummary   = "Total <strong>%s</strong> %s on this page.";
 $lang->contract->checkedSummary = "<strong>%total%</strong> %contractCommon% selected";
 $lang->contract->browse       = "{$lang->contract->common} List";
+$lang->contract->appointedParty  = $lang->contract->ap;
+$lang->contract->contractManager =$lang->contract->cm  ;
+$lang->contract->createdDate    ="Created Date";
+$lang->contract->openedBy       ="Created By";
+$lang->contract->sign           ="Need Sign?";
+$lang->contract->user           ="User";
+$lang->contract->sequence           ="Approval Sequence";
+$lang->contract->invoiceList ="Invoice List";
+$lang->contract->createInvoice ="Create Invoice";
+$lang->contract->deleteInvoice =$lang->invoice->deleteInvoice;
+$lang->contract->editinvoice =$lang->invoice->editinvoice;
+$lang->contract->approval   ="Approval List";
+
+
+
+
+
+
+

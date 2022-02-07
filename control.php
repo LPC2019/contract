@@ -100,7 +100,6 @@ class contract extends control
      */
     public function browse($productID = 0, $branch = '', $browseType = '', $param = 0, $storyType = 'contract', $orderBy = '', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        $this->contract->setMenu($this->products, $productID);
         /* Lower browse type. */
         $browseType = strtolower($browseType);
 
@@ -130,7 +129,7 @@ class contract extends control
         $queryID  = ($browseType == 'bysearch') ? (int)$param : 0;
 
         /* Set menu. */
-        $this->product->setMenu($this->products, $productID, $branch);
+        $this->contract->setMenu($this->products, $productID);
 
         /* Set moduleTree. */
         $createModuleLink =  'createContractLink';
@@ -261,7 +260,7 @@ class contract extends control
 
         $rootID = key($this->products);
         if($this->session->product) $rootID = $this->session->product;
-        $this->product->setMenu($this->products, $rootID);
+        $this->contract->setMenu($this->products, $rootID);
 
         $contractOption=$this->dao->select('id,contractName')->from('zt_contract')->where('appointedParty')->eq('admin')->andWhere('status')->eq('normal')->fetchPairs();
         if(!$contractOption){
@@ -448,39 +447,32 @@ class contract extends control
      * @access public
      * @return void
      */
-    public function view($productID)
+    public function view($contractID)
     {
-        $product = $this->product->getStatByID($productID);
-        $contractID=$productID;
         $contract = $this->dao->select('*')->from('zt_contract')->where('id')->eq($contractID)->fetch();
         $contractAP=$this->dao->select('*')->from('zt_approval')->where('objectType')->eq('contract')->andWhere("objectID")->eq($contractID)->fetchALL();
-        var_dump($contract);
-        var_dump($contractAP);
+        $product = $this->product->getStatByID($contract->assetID);
+        $invoice = $this->dao->select('*')->from('zt_invoice')->where('contractID')->eq($contractID)->andWhere("status !='deleted' and status !='pending' ")->fetchALL();
 
+        if(!$contract) die(js::error($this->lang->contract->common." ".$this->lang->notFound) . js::locate('back'));
 
-        if(!$contract) die(js::error($this->lang->notFound) . js::locate('back'));
-
-        $product->desc = $this->loadModel('file')->setImgSize($product->desc);
-        $this->product->setMenu($this->products, $productID);
-
+        //$product->desc = $this->loadModel('file')->setImgSize($product->desc);
+        $this->contract->setMenu($this->products, $product->id);
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
         $pager = new pager(0, 30, 1);
 
         $this->executeHooks($productID);
+        $this->view->contract=$contract;
+        $this->view->contractAP=$contractAP;
 
         $this->view->title      = $contract->contractName . $this->lang->colon . $this->lang->product->view;
-        $this->view->position[] = html::a($this->createLink($this->moduleName, 'browse'), $product->name);
-        $this->view->position[] = $this->lang->product->view;
         $this->view->product    = $product;
         $this->view->actions    = $this->loadModel('action')->getList('contract', $contractID);
         $this->view->users      = $this->user->getPairs('noletter');
         $this->view->groups     = $this->loadModel('group')->getPairs();
-        $this->view->lines      = array('') + $this->loadModel('tree')->getLinePairs();
-        $this->view->branches   = $this->loadModel('branch')->getPairs($productID);
-        $this->view->dynamics   = $this->loadModel('action')->getDynamic('all', 'all', 'date_desc', $pager, $productID);
-        $this->view->roadmaps   = $this->product->getRoadmap($productID, 0, 6);
-
+      //  $this->view->dynamics   = $this->loadModel('action')->getDynamic('all', 'all', 'date_desc', $pager, $contractID);
+        $this->view->invoice   = $invoice; 
         $this->display();
     }
 
@@ -645,7 +637,7 @@ class contract extends control
      */
     public function ajaxGetDropMenu($productID, $module, $method, $extra)
     {
-        $this->view->link      = $this->product->getProductLink($module, $method, $extra);
+        $this->view->link      = $this->contract->getProductLink($module, $method, $extra);
         $this->view->productID = $productID;
         $this->view->module    = $module;
         $this->view->method    = $method;
@@ -668,9 +660,8 @@ class contract extends control
                 }
             }
         }
-
         $productList = array_merge($productList, $products);
-
+        var_dump($this->view->link);
         $this->view->products  = $productList;
         $this->display();
     }
@@ -1060,7 +1051,7 @@ class contract extends control
 
        // $this->session->set('productList', $this->app->getURI(true));
         $productID = $this->product->saveState($productID, $this->products);
-        $this->product->setMenu($this->products, $productID);// may be add more col for select contract
+        $this->contract->setMenu($this->products, $productID);// may be add more col for select contract
         $this->app->loadClass('pager', $static = true);
         $pager = new pager(0, $recPerPage, $pageID);
 
@@ -1074,7 +1065,7 @@ class contract extends control
         $this->view->position[]   = $this->lang->product->allProduct;
         $this->view->productStats = $this->product->getStats($orderBy, $pager, $status, $line);
         $this->view->lineTree     = $this->loadModel('tree')->getTreeMenu(0, $viewType = 'line', $startModuleID = 0, array('treeModel', 'createLineLink'), array('productID' => $productID, 'status' => $status));
-        $this->view->lines        = array('') + $this->tree->getLinePairs();
+        //$this->view->lines        = array('') + $this->tree->getLinePairs();
         $this->view->productID    = $productID;
         $this->view->line         = $line;
         $this->view->status       = $status;   

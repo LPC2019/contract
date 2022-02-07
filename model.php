@@ -29,6 +29,7 @@ class contractModel extends model
      */
     public function setMenu($products, $productID, $branch = 0, $module = 0, $moduleType = '', $extra = '')
     {
+        
         if(common::hasPriv('contract', 'all')){
 
         }
@@ -42,7 +43,6 @@ class contractModel extends model
         if($this->config->global->flow != 'full') $label = $this->lang->product->all;
         if($currentModule == 'product' && $currentMethod == 'all')    $label = $this->lang->product->all;
         if($currentModule == 'product' && $currentMethod == 'create') $label = $this->lang->product->create;
-
         $pageNav  = '';
             $pageNav  = '<div class="btn-group angle-btn' . ($currentMethod == 'index' ? ' active' : '') . '"><div class="btn-group"><button data-toggle="dropdown" type="button" class="btn">' . $label . ' <span class="caret"></span></button>';
             $pageNav .= '<ul class="dropdown-menu">';
@@ -52,13 +52,14 @@ class contractModel extends model
             
             $pageNav .= '</ul></div></div>';
             $pageNav .= $selectHtml;
+        
         $pageActions = '';
         $this->lang->modulePageNav     = $pageNav;
         $this->lang->modulePageActions = $pageActions;
-        foreach($this->lang->contract->menu as $key => $menu)
+        foreach($this->lang->product->menu as $key => $menu)
         {
             $replace = $productID;
-            common::setMenuVars($this->lang->contract->menu, $key, $replace);
+            common::setMenuVars($this->lang->product->menu, $key, $replace);
         }
     }
 
@@ -1053,27 +1054,13 @@ class contractModel extends model
             {
                 $link = helper::createLink($module, $method, "productID=%s" . ($branch ? "&branch=%s" : ''));
             }
-        }
-        else if($module == 'productplan' || $module == 'release')
-        {
-            if($method != 'browse' && $method != 'create') $method = 'browse';
-            $link = helper::createLink($module, $method, "productID=%s" . ($branch ? "&branch=%s" : ''));
-        }
-        else if($module == 'tree')
-        {
-            $link = helper::createLink($module, $method, "productID=%s&type=$extra&currentModuleID=0" . ($branch ? "&branch=%s" : ''));
-        }
-        else if($module == 'branch')
-        {
-            $link = helper::createLink($module, $method, "productID=%s");
-        }
-        else if($module == 'doc')
-        {
-            $link = helper::createLink('doc', 'objectLibs', "type=product&objectID=%s&from=product");
-        }else if($module == 'contract' && $method=='invoiceList'){
+        }else if($module == 'contract' && ($method=='invoiceList'||$method=="createinvoice") ){
             // list view index
-        }else if($module == 'contract' ){
-            $link = helper::createLink($module,"index", "contractID=%s");
+        }else if($module == 'contract' && $method=="createinvoice"){
+            $link = helper::createLink($module, "browse", "contractID=%s");
+        }
+        else if($module == 'contract' ){
+            $link = helper::createLink($module, $method, "contractID=%s");
         }
 
         return $link;
@@ -1433,8 +1420,10 @@ class contractModel extends model
                     common::printIcon('contract', 'edit',$vars, $contract, 'list');
                     common::printIcon('contract', 'finish',$vars, $contract, 'list', '', '', 'iframe', true);
                 }
+                common::printIcon('contract', 'invoiceList',$vars,  $contract, 'list');
+
                 if($this->app->user->account==$contract->appointedParty || $this->app->user->account=="admin"){
-                    common::printIcon('contract', 'createinvoice',$vars,  $this->lang->story->subdivide);
+                    common::printIcon('contract', 'createInvoice',$vars,  $contract, 'list');
                 }
                 break;
             }
