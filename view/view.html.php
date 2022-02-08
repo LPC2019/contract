@@ -52,11 +52,12 @@ table {
             <div class="detail-content article-content">
               <p><span class="text-limit" data-limit-size="40"><?php echo $contract->desc;?></span><a class="text-primary text-limit-toggle small" data-text-expand="<?php echo $lang->expand;?>"  data-text-collapse="<?php echo $lang->collapse;?>"></a></p>
               <p>
-                <span class="label label-success label-outline"><?php echo $lang->product->status . ':' . $this->processStatus('product', $product);?></span>
-
-                <?php if($contract->deleted):?>
-                <span class='label label-danger label-outline'><?php echo $lang->contract->deleted;?></span>
-                <?php endif; ?>
+              <?php
+                 if($contract->deleted):?>
+                <span class='label label-danger label-outline'><?php echo $lang->product->deleted;?></span>
+                <?php else: ?>
+                <span class="label label-success label-outline"><?php echo $lang->product->status . ':' . $contract->status;?></span>
+                <?php endif;?>
               </p>
             </div>
           </div>

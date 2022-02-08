@@ -1152,15 +1152,11 @@ class contract extends control
                 $result=$this->file->replaceFile($fileID[0],"files");
                 $actionID = $this->loadModel('action')->create('invoice', $invoiceID, 'updated');
                 $this->executeHooks($productID);
-                $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('viewInvoice', "invoice=$invoiceID")));
+                $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('invoiceview', "invoice=$invoiceID")));
             }else{
                 $this->send(array('fail' => 'success', 'message' => 'pleases contact system admin'));
-            
-
             }
         }
-
-
         $contract=$this->contract->getContractByID($invoice->contractID);
         $invoicedetails=$this->dao->select('*')->from('zt_invoicedetails')->where('invoiceID')->eq($invoiceID)->fetchALL();
         $this->contract->setMenu($this->products, $contract->assetID);
