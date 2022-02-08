@@ -165,9 +165,8 @@ $lang->product->moreSelects['closedstory']  = $lang->product->closedStory;
 
 
 
-
+$lang->invoice->approvallist       ='Approval List';
 $lang->invoice->create             ="Create Invoice";
-$lang->invoice->amount             ="Amount";
 $lang->invoice->acl                = 'Access Control';
 $lang->invoice->aclList['open']    = "Default (Users with privileges to {$lang->contract->common} can access it.)";
 $lang->invoice->aclList['private'] = "Only who related to the contract can access";
@@ -179,9 +178,9 @@ $lang->contract->contractID        = 'Contract ID';
 $lang->invoice->status             = 'Status';
 $lang->invoice->refNo             = 'Invoice Ref.No.';
 
-$lang->invoice->amount             = 'Amount';
+$lang->invoice->amount             = 'Total Amount';
 $lang->invoice->submitteddate      = 'Submitted date';
-$lang->invoice->step               = 'Step';
+$lang->invoice->step               = 'Current Sequence';
 $lang->invoice->detail             = 'Details';
 $lang->invoice->AccountStatus      = 'AccountStatus';
 $lang->invoice->invoiceID          = 'Invoice ID';
@@ -190,6 +189,11 @@ $lang->invoice->price              = 'Price';
 $lang->invoice->edit               = 'Edit';
 $lang->invoice->deleteInvoice ="Delete Invoice";
 $lang->invoice->editinvoice ="Edit Invoice";
+$lang->invoice->basicInfo   ="Basic Info:";
+$lang->invoice->softcopy    ="Invoice SoftCopy";
+$lang->invoice->eoRef       ="Ref. No.";
+$lang->invoice->action      ='Action';
+
 
 
 $lang->contract->common ='Contract';
@@ -226,8 +230,9 @@ $lang->contract->createInvoice ="Create Invoice";
 $lang->contract->deleteInvoice =$lang->invoice->deleteInvoice;
 $lang->contract->editinvoice =$lang->invoice->editinvoice;
 $lang->contract->approval   ="Approval List";
-
-
+$lang->contract->approveDate="Approve Date";
+$lang->contract->signature  ="Signature";
+$lang->contract->detail     ="Contract Details";
 
 
 

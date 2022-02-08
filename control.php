@@ -12,6 +12,7 @@
 class contract extends control
 {
     public $products = array();
+    public $invoices = array();
 
     /**
      * Construct function.
@@ -661,7 +662,7 @@ class contract extends control
             }
         }
         $productList = array_merge($productList, $products);
-        var_dump($this->view->link);
+
         $this->view->products  = $productList;
         $this->display();
     }
@@ -1044,17 +1045,30 @@ class contract extends control
      * @access public
      * @return void 
      */
-    public function invoicelist($contractID = 0, $line = 0, $status = 'noclosed', $orderBy = 'order_desc', $recTotal = 0, $recPerPage = 10, $pageID = 1)
+    
+    /**
+     * All invoice. 2022.1.10
+     *
+     * @param  int    $productID
+     * @param  int    $line
+     * @param  string $status
+     * @param  string $orderBy
+     * @param  int    $recTotal
+     * @param  int    $recPerPage
+     * @param  int    $pageID
+     * @access public
+     * @return void 
+     */
+    public function invoicelist($contractID, $line = 0, $status = 'noclosed', $orderBy = 'order_desc', $recTotal = 0, $recPerPage = 10, $pageID = 1)
     {
-
-        //pleases help to fix the fucking pager
-
-       // $this->session->set('productList', $this->app->getURI(true));
+        $this->session->set('productList', $this->app->getURI(true));
         $productID = $this->product->saveState($productID, $this->products);
-        $this->contract->setMenu($this->products, $productID);// may be add more col for select contract
+        $this->product->setMenu($this->products, $productID);
+ 
+        /* Load pager and get tasks. */
         $this->app->loadClass('pager', $static = true);
-        $pager = new pager(0, $recPerPage, $pageID);
-
+        $pager = new pager($recTotal, $recPerPage, $pageID);
+    
 
         /* Save this url to session. */
         $uri = $this->app->getURI(true);
@@ -1065,7 +1079,7 @@ class contract extends control
         $this->view->position[]   = $this->lang->product->allProduct;
         $this->view->productStats = $this->product->getStats($orderBy, $pager, $status, $line);
         $this->view->lineTree     = $this->loadModel('tree')->getTreeMenu(0, $viewType = 'line', $startModuleID = 0, array('treeModel', 'createLineLink'), array('productID' => $productID, 'status' => $status));
-        //$this->view->lines        = array('') + $this->tree->getLinePairs();
+        $this->view->lines        = array('') + $this->tree->getLinePairs();
         $this->view->productID    = $productID;
         $this->view->line         = $line;
         $this->view->status       = $status;   
@@ -1073,36 +1087,41 @@ class contract extends control
         $this->view->pager        = $pager;
 
         //Add invoice stats
-        $this->view->invoiceStats = $this->contract->getInvoiceStats($orderBy, $pager, $line);
+        $this->view->contract=$this->contract->getContractByID($contractID);
+        $this->view->invoiceStats = $this->contract->getInvoiceStats($contractID, $orderBy, $pager, $line);
         
         $this->display();
     }
-        /** 
+
+    /** 
      * View an invoice. 2022.1.10
      *
      * @param  int    $invoiceID
-     * @param  int    $contractID why need this?
+     * @param  int    $contractID
      * @access public
      * 
      * @return void
      */
     public function invoiceview($invoiceID)
     {
-        //access control
+        //$product = $this->product->getStatByID($productID);
+        //if(!$product) die(js::error($this->lang->notFound) . js::locate('back'));
+
+        //$product->desc = $this->loadModel('file')->setImgSize($product->desc);
+        //$this->product->setMenu($this->products, $productID);
 
         //For Invoice 2022.1.13
         $invoice = $this->contract->getInvoiceStatByID($invoiceID);
-        if(!$invoice) die(js::error($this->lang->notFound).js::locate('back'));
-
-        //get approval list
-        $approvals=$this->contract->getApprovalList($invoiceID,'invoice');
+        if(!$invoice) die(js::error($this->lang->notFound) . js::locate('back'));
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
         $pager = new pager(0, 30, 1);
 
         $this->executeHooks($productID);
-        $this->view->contract=$this->contract->getContractByID($invoice->contractID);
+        $softcopy=$this->loadModel('file')->getByObject('invoice',$invoiceID);
+
+        $this->view->softcopy=$softcopy;
         $this->view->title      = $product->name . $this->lang->colon . $this->lang->product->view;
         $this->view->position[] = html::a($this->createLink($this->moduleName, 'browse'), $product->name);
         $this->view->position[] = $this->lang->product->view;
@@ -1116,22 +1135,14 @@ class contract extends control
         $this->view->roadmaps   = $this->product->getRoadmap($productID, 0, 6);
 
         //For invoice 2022.1.13
-        $this->contract->setMenu($this->products, $contract->assetID);
         $this->view->invoice    = $invoice;
-        $this->view->approvals  = $approvals;
-        $approver=array();// get who can approve/reject
-        if(count($approvals[$invoice->step])>1){
-            foreach($approvals[$invoice->step] as $value){
-                array_push($approver,$value->user);
-            }
-        }else{
-                array_push($approver,$approvals[$invoice->step]->user);   
-        }
-        $this->view->approver=$approver;
-
-        
+        $this->view->contract   = $this->contract->getContractByID($invoice->contractID);
+        $this->view->asset     =$this->loadModel('product')->getByID($this->view->contract->assetID);
+        //Add approval stats
+        $this->view->approvalStats = $this->contract->getApprovalStats($invoiceID, $orderBy, $pager, $line);
         $this->display();
     }
+    
     public function editinvoice($invoiceID)
     {
  

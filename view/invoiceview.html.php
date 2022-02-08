@@ -67,25 +67,23 @@
               </li>-->
               <?php //endforeach;?>
             <div class="detail">
-            <div class="detail-title"><strong><?php echo $lang->product->basicInfo;?></strong></div>
+            <div class="detail-title "><strong><?php echo $lang->invoice->basicInfo;?></strong></div>
             <div class="detail-content">
               <table class="table table-data data-basic">
-                <tbody>
-                  <tr>
-                    <th><?php echo $lang->contract->contractID;?></th>
-                    <td><em><?php echo $invoice->contractID;?></em></td>
-                  </tr>
-                  <tr>
-                    <th><?php echo $lang->invoice->invoiceID;?></th>
+                <tbody> 
+                <tr>
+                    <th class="w-120px"><?php echo $lang->invoice->invoiceID;?></th>
                     <td><em><?php echo $invoice->id;?></em></td>
+                    <th ><?php echo $lang->invoice->status;?></th>
+                    <td><em><b><?php echo $invoice->status;?></b></em></td>
                   </tr>
-                  <tr>
-                    <th><?php echo $lang->contract->eoRef?></th>
-                    <td><em><?php echo $invoice->refNo;?></em></td>
-                  </tr> 
                   <tr>
                     <th><?php echo $lang->invoice->submitteddate?></th>
                     <td><em><?php echo $invoice->submitdate;?></em></td>
+                  </tr>
+                  <tr>
+                    <th><?php echo $lang->invoice->amount;?></th>
+                    <td><em><?php echo '$'.$invoice->amount;?></em></td>
                   </tr>
                   <tr>
                     <th><?php echo $lang->invoice->step;?></th>
@@ -99,8 +97,17 @@
                   </tr>
                   <?php endforeach;?>
                   <tr>
-                    <th><?php echo $lang->contract->desc;?></th>
+                    <th><?php echo $lang->invoice->desc;?></th>
                     <td><em><?php echo $invoice->description;?></em></td>
+                  </tr>
+                  <tr>
+                    <th><?php echo $lang->invoice->softcopy;?></th>
+                    <td><em>
+                    <?php foreach($softcopy as $file){
+                      echo "<a href='".helper::createlink('file','download',"fileID=$file->id")."'>$file->title</a>";
+                      break;
+                    }?>
+                    </em></td>
                   </tr>
                 </tbody>
               </table>
@@ -110,11 +117,13 @@
         </div>
       </div>
       <?php $this->printExtendFields($product, 'div', "position=left&inForm=0");?>
-      <div class="col-sm-12">
+      <!--<div class="col-sm-12">
         <?php $blockHistory = true;?>
         <?php $actionFormLink = $this->createLink('action', 'comment', "objectType=product&objectID=$product->id");?>
         <?php include '../../common/view/action.html.php';?>
+        <?php //echo $this->fetch('file', 'printFiles', array('files' => $invoice->file, 'fieldset' => 'false'));?>
       </div>
+       -->
     </div>
     <div class='main-actions'>
       <div class="btn-toolbar">
@@ -138,27 +147,104 @@
           }
         }else if($invoice->status=='rejected') {// should only deleted by appointedParty Or CM? 
             common::printIcon('contract', 'deleteInvoice', "invoiceID=".$invoice->id, $invoice, 'button', 'trash', 'hiddenwin');
-
         }else if($invoice->status=='approved') {
             common::printIcon('contract', 'payment', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
             
         }else if($invoice->status=='paid'){
             common::printIcon('contract', 'exportpdf', "invoiceID=".$invoice->id, $invoice,'button', '', '', 'iframe', true);
+        }  
 
-        }   
         ?>
+        
       </div>
     </div>
   </div>
   <div class="col-4 side-col">
+    <div class="cell">
+      <div class='tabs'>
+        <ul class='nav nav-tabs'>
+          <li class='active'><a href='#legendBasic' data-toggle='tab'><?php echo $lang->invoice->approvallist;?></a></li>
+          <li><a href='#legendLife' data-toggle='tab'><?php echo $lang->contract->detail;?></a></li>
+          <?php if(!empty($task->team)) :?>
+          <li><a href='#legendTeam' data-toggle='tab'><?php echo $lang->task->team;?></a></li>
+          <?php endif;?>
+        </ul>
+        <div class='tab-content'> 
+          <div class='tab-pane active' id='legendBasic'>
+            <table class="pure-table pure-table-horizontal" style="width:100%">
+              <thead>
+                <tr>
+                    <th><?php echo $lang->contract->sequence;?></th>
+                    <!--<th><?php //echo $lang->approval->position;?></th>-->
+                    <th><?php echo $lang->contract->user;?></th>
+                    <th><?php echo $lang->contract->signature;?></th>
+                    <th><?php echo $lang->contract->approveDate;?></th>
+                </tr>
+              </thead>
+        
+              <tbody>
+                <?php foreach($approvalStats as $approval):?>
+                    <tr <?php if($approval->approveDate==NULL && $approval->order==$invoice->step ){ echo "style='background-color:yellow;'"; }?>>
+                      <td> <?php echo $approval->order;?></td>
+                      <td> <?php echo $approval->user;?></td>
+                      <td> <?php echo "Image".$approval->signature;?> </td> 
+                      <td> <?php echo $approval->approveDate;?></td>
+                    </tr>
+                <?php endforeach;?>
+                
+              </tbody>
+            </table>
+          </div>
+          <div class='tab-pane' id='legendLife'>
+            <table class='table table-data' style="width:100%"> <tr>
+            <tr>
+                <th class="w-150px"><?php echo $lang->contract->contractID;?></th>
+                <td><?php echo $invoice->contractID;?></td>
+              </tr>
+              <th><?php echo $lang->contract->name;?></th>
+                    <td><em><?php echo html::a($this->createLink('contract', 'view', "contract=$invoice->contractID" ), $contract->contractName);?> <!-- changed the hyperlink to invoiceview 2020.1.10--></em></td>
+              </tr>
+
+              <tr>
+                    <th><?php echo $lang->contract->eoRef?></th>
+                    <td><em><?php echo $invoice->refNo;?></em></td>
+              </tr> 
+           
+              <tr>
+                <th><?php echo $lang->contract->amountInvoiceview;?></th>
+                <td><?php echo $invoice->totalAmount;?></td>
+              </tr>
+              <tr>
+                <th><?php echo $lang->product->name;?></th>
+                <td><?php echo $asset->name;?></td>
+              </tr>
+              <tr>
+                <th><?php echo $lang->contract->cm;?></th>
+                <td><?php echo $contract->contractManager;?></td>
+              </tr>
+              <tr>
+                <th><?php echo $lang->contract->ap;?></th>
+                <td><?php echo $contract->appointedParty;?></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="row">
       <div class="col-sm-12">
         <div class="cell">
           <div class="detail">
-            <!--<h2 class="detail-title"><span class="label-id"><?php //$lang->invoice->AccountStatus;?></span> <span class="label label-light label-outline"><?php //echo $product->code;?></span> <?php //echo $product->name;?></h2>-->
-            <div class="detail-title"><strong><?php echo $lang->invoice->AccountStatus.':'.' '.$invoice->status;?></strong></div>
+            <!--<h2 class="detail-title"><span class="label-id"><?php //$lang->invoice->AccountStatus;?></span> <span class="label label-light label-outline"><?php //echo $product->code;?></span> <?php //echo $product->name;?></h2>
+            <div class="detail-title"><strong><?php //echo $lang->invoice->AccountStatus.':'.' '.$invoice->status;?></strong></div>
             <div class="detail-content article-content">
-              <?php var_dump($approvals);?>
+            <?php //foreach($approvalStats as $approval):?>
+                  <div>
+                    <th><?php //echo $lang->approval->user;?></th> <td> <em><?php //echo ': '.$approval->user;?></em></td>
+                    <th><?php //echo $lang->approval->sign;?></th> <td> <em><?php //echo ': '.$approval->sign;?></em> </td> 
+                    <th><?php //echo $lang->approval->approveDate;?></th> <td> <em><?php //echo ': '.$approval->approveDate;?></em> </td>
+                  </div>
+            <?php //endforeach;?>-->
               <!--<p><span class="text-limit" data-limit-size="40"><?php //echo $product->desc;?></span><a class="text-primary text-limit-toggle small" data-text-expand="<?php //echo $lang->expand;?>"  data-text-collapse="<?php //echo $lang->collapse;?>"></a></p>-->
               <!--<p>
                 <span class="label label-primary label-outline"><?php //echo $lang->product->typeAB . ':' . zget($lang->product->typeList, $product->type);?></span>
@@ -263,7 +349,7 @@
                     <td><em><?php //echo $product->cases?></em></td>
                   </tr>
                   <tr>
-                    <th><?php e//cho $lang->story->statusList['draft']  . $space . $lang->story->common;?></th>
+                    <th><?php //cho $lang->story->statusList['draft']  . $space . $lang->story->common;?></th>
                     <td><em><?php //echo $product->stories['draft']?></em></td>
                     <th><?php //echo $lang->product->builds?></th>
                     <td><em><?php //echo $product->builds?></em></td>

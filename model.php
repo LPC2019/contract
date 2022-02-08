@@ -1226,6 +1226,13 @@ class contractModel extends model
         $approvals=$this->dao->select('*')->from('zt_approval')->where("objectType")->eq($type)->andWhere("objectID")->eq($id)->fetchALL('order');
         return $approvals;
     }
+    public function getApprovalLists($status = 'all', $limit = 0, $line = 0)
+    {
+        return $this->dao->select('*')->from('zt_approval')
+            ->beginIF($limit > 0)->limit($limit)->fi()
+            ->fetchAll('id');
+    }
+
     public function updateInvoice($invoiceID){
         $invoice=$this->dao->select('*')->from('zt_invoice')->where("id")->eq($invoiceID)->fetch();
         $invoice->description=$this->post->description;
@@ -1259,6 +1266,32 @@ class contractModel extends model
         $invoice->lastEdit=helper::now();
         $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();// update invoice record
         return true;
+    }
+      /** 2022.1.13
+     * Get approval stats.
+     *
+     * @param  string $orderBy
+     * @param  object $pager
+     * @param  string $status
+     * @param  int    $line
+     * @param  string $storyType requirement|story
+     * @access public
+     * @return array
+     */
+    public function getApprovalStats($invoiceID, $orderBy = 'order_desc', $pager = null, $line = 0, $storyType = 'story')
+    {
+
+
+       // $approvals = $this->getApprovalLists($status, $limit = 0, $line); 
+        $approvalID = $this->dao->select('*')->from('zt_approval')->where('objectID')->eq($invoiceID)->andWhere('objectType')->eq('invoice')->orderBy('`order`')->fetchALL('id');
+        $stats = array();
+
+        foreach( $approvalID as $approval)
+        { 
+            $stats[] = $approval;
+        }
+
+        return $stats;
     }
     public function printCell($col, $contract, $users)
     {
