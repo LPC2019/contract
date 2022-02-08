@@ -74,7 +74,7 @@
             <th class='w-80px' title='<?php echo $lang->invoice->status;?>'><?php echo $lang->invoice->status;?></th>
             <th class='w-100px' title='<?php echo $lang->invoice->amount;?>'><?php echo $lang->invoice->amount;?></th>
             <th class='w-110px' title='<?php echo $lang->invoice->submitteddate;?>'><?php echo $lang->invoice->submitteddate;?></th>
-            <th class='w-100px' title='<?php echo $lang->invoice->step;?>'><?php echo $lang->invoice->step;?></th>
+            <th class='w-120px' title='<?php echo $lang->invoice->step;?>'><?php echo $lang->invoice->step;?></th>
             <th class='w-100px' title='<?php echo $lang->invoice->action;?>'><?php echo $lang->invoice->action;?></th>
             <?php if($canOrder):?>
             <!--<th class='w-70px sort-default'><?php common::printOrderLink('order', $orderBy, $vars, $lang->product->updateOrder);?></th>-->
@@ -109,7 +109,7 @@
                   common::printIcon('contract', 'editinvoice', "invoiceID=$invoice->id", $id, 'list');
             }?></td>
           <?php if($canOrder):?>
-          ,<!--<td class='c-actions sort-handler'><i class="icon icon-move"></i></td>-->
+          <!--<td class='c-actions sort-handler'><i class="icon icon-move"></i></td>-->
           <?php endif;?>
         </tr>
         <?php endforeach;?>

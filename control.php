@@ -941,9 +941,7 @@ class contract extends control
         if($sameStep){// keep it
             echo jS::alert("in same step");
             js::closeModal('parent.parent', 'this');
-            die();
-            
-            
+            die();            
         }
 
         $nextStep = $this->dao->select('*')->from('zt_approval')//check approve stage
@@ -1015,13 +1013,15 @@ class contract extends control
         if(!$approval || $approval->user!=$this->app->user->account){
             die(je::alert("system error"));
         }
-        $approval->approveDate=helper::now();
-        //$approval->signature=user::getSign();
-
-
+        //$approval->approveDate=helper::now();
         $approval->status="rejected";
         $approval->description=$_POST['description'];
-        $this->dao->update("zt_approval")->data($approval)->where('id')->eq($approval->id)->exec();        
+        $this->dao->update("zt_approval")->data($approval)->where('id')->eq($approval->id)->exec();      
+        
+        $invoice=$this->contract->getByID($approval->objectID);
+        $invoice->status="rejected";
+        $invoice->lastedit=helper::now();
+        $this->dao->update("zt_invoice")->data($invoice)->where('id')->eq($approval->id)->exec();
         echo js::alert("success");
         js::closeModal('parent.parent', 'this');
 

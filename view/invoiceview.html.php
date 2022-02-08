@@ -49,7 +49,7 @@
         </div>
       </div>
       <?php endif;?>
-      <div class="col-sm-<?php echo $isRoadmap ? 6 : 12?>">
+      <div class="col-sm-<?php echo 12?>">
         <div class="panel block-dynamic">
           <div class="panel-heading">
           <div class="panel-title"><?php echo $lang->invoice->detail;?></div>
@@ -97,13 +97,15 @@
                   </tr>
                   <?php endforeach;?>
                   <tr>
-                    <th><?php echo $lang->invoice->desc;?></th>
+                    <th><?php echo $lang->contract->desc;?></th>
                     <td><em><?php echo $invoice->description;?></em></td>
                   </tr>
                   <tr>
                     <th><?php echo $lang->invoice->softcopy;?></th>
                     <td><em>
-                    <?php foreach($softcopy as $file){
+                      
+                    <?php
+                    foreach($softcopy as $file){
                       echo "<a href='".helper::createlink('file','download',"fileID=$file->id")."'>$file->title</a>";
                       break;
                     }?>
@@ -140,7 +142,7 @@
             common::printIcon('contract', 'deleteInvoice', $params, $product, 'button', 'trash', 'hiddenwin');
           }
         }else if($invoice->status=='submitted') {
-          if(in_array($this->app->user->account,$approver) || $this->app->user->account=='admin'){// can user approve?
+          if(in_array($this->app->user->account,$approver)){// can user approve?
             $u=$this->dao->select('*')->from('zt_approval')->where('objectID')->eq($invoice->id)->andWhere('objectType')->eq('invoice')->andWhere("User")->eq($this->app->user->account)->fetch();
             $u->sign==0?common::printIcon('contract', 'Approve', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true):common::printIcon('contract', 'ApproveWithSign', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
             common::printIcon('contract', 'Reject', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
@@ -149,7 +151,6 @@
             common::printIcon('contract', 'deleteInvoice', "invoiceID=".$invoice->id, $invoice, 'button', 'trash', 'hiddenwin');
         }else if($invoice->status=='approved') {
             common::printIcon('contract', 'payment', "invoiceID=".$invoice->id, $invoice, 'button', '', '', 'iframe', true);
-            
         }else if($invoice->status=='paid'){
             common::printIcon('contract', 'exportpdf', "invoiceID=".$invoice->id, $invoice,'button', '', '', 'iframe', true);
         }  
@@ -178,7 +179,10 @@
                     <!--<th><?php //echo $lang->approval->position;?></th>-->
                     <th><?php echo $lang->contract->user;?></th>
                     <th><?php echo $lang->contract->signature;?></th>
+                    <th><?php echo $lang->contract->status;?></th>
                     <th><?php echo $lang->contract->approveDate;?></th>
+                    <th><?php echo $lang->contract->desc;?></th>
+
                 </tr>
               </thead>
         
@@ -187,8 +191,21 @@
                     <tr <?php if($approval->approveDate==NULL && $approval->order==$invoice->step ){ echo "style='background-color:yellow;'"; }?>>
                       <td> <?php echo $approval->order;?></td>
                       <td> <?php echo $approval->user;?></td>
-                      <td> <?php echo "Image".$approval->signature;?> </td> 
+                      
+                      <td> 
+                      <?php if($approval->status=="approved"):?>
+                        <?php echo "Image".$approval->signature;?> 
+                      <?php else: ?>
+                        <?php echo "N/A";?>
+                        <?php endif;?>
+                      </td>
+                      <td> <?php echo $approval->status;?></td>
                       <td> <?php echo $approval->approveDate;?></td>
+                      
+                      <td>
+                        <?php if($approval->status!="waiting"):?>
+                         <a href='<?php echo helper::createlink('contracrt','viewApproval',"apID=$approval->id");?>'>View</a></td>
+                          <?php endif; ?>
                     </tr>
                 <?php endforeach;?>
                 

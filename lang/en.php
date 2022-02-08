@@ -230,10 +230,10 @@ $lang->contract->createInvoice ="Create Invoice";
 $lang->contract->deleteInvoice =$lang->invoice->deleteInvoice;
 $lang->contract->editinvoice =$lang->invoice->editinvoice;
 $lang->contract->approval   ="Approval List";
-$lang->contract->approveDate="Approve Date";
+$lang->contract->approveDate="Respone Date";
 $lang->contract->signature  ="Signature";
 $lang->contract->detail     ="Contract Details";
-
+$lang->contract->status     ='Status';
 
 
 
