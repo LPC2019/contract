@@ -1196,32 +1196,89 @@ class contractModel extends model
             ->fetchAll('id');
     }
     
-    public function getInvoiceStats($orderBy = 'order_desc', $pager = null, $line = 0, $storyType = 'story')
+    public function getInvoiceStats($contractID, $orderBy = 'order_desc', $pager = null, $line = 0, $storyType = 'story')
     {
         $this->loadModel('report');
         $this->loadModel('story');
         $this->loadModel('bug');
 
-        
         $invoices = $this->getInvoiceList($status, $limit = 0, $line); 
+        /*$invoice = $this->dao->select('*')->from('zt_invoice')
+            ->where('id')->in(array_keys($invoices))
+            ->orderBy($orderBy)
+            ->page($pager)
+            ->fetchAll('id');*/
+            
+
+        //$plans = $this->dao->select('product, count(*) AS count')
+            //->from(TABLE_PRODUCTPLAN)
+            //->where('deleted')->eq(0)
+            //->andWhere('product')->in(array_keys($products))
+            //->andWhere('end')->gt(helper::now())
+            //->groupBy('product')
+            //->fetchPairs();
+
+        //$releases = $this->dao->select('product, count(*) AS count')
+            //->from(TABLE_RELEASE)
+            //->where('deleted')->eq(0)
+            //->andWhere('product')->in(array_keys($products))
+            //->groupBy('product')
+            //->fetchPairs();
+
+       // $bugs = $this->dao->select('product,count(*) AS conut')
+            //->from(TABLE_BUG)
+            //->where('deleted')->eq(0)
+            //->andWhere('product')->in(array_keys($products))
+            //->groupBy('product')
+            //->fetchPairs();
+        //$unResolved = $this->dao->select('product,count(*) AS count')
+            //->from(TABLE_BUG)
+            //->where('deleted')->eq(0)
+            //->andwhere('status')->eq('active')
+            //->andWhere('product')->in(array_keys($products))
+            //->groupBy('product') 
+            //->fetchPairs();
+        //$assignToNull = $this->dao->select('product,count(*) AS count')
+            //->from(TABLE_BUG)
+            //->where('deleted')->eq(0)
+            //->andwhere('assignedTo')->eq('')
+            //->andWhere('product')->in(array_keys($products))
+            //->groupBy('product')
+            //->fetchPairs();
+
+        
         $invoiceID = $this->dao->select('id')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('contractID')->eq($contractID)->fetch('');
        
         $stats = array();
 
         foreach($invoices as $invoiceID => $invoice)
         { 
+            
+            $invoiceContractID = $this->dao->select('contractID')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('contractID');
+
+            if($contractID == $invoiceContractID){
             $invoice->refNo  = $this->dao->select('refNo')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('refNo');
             $invoice->status = $this->dao->select('status')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('status');
             $invoice->amount = $this->dao->select('amount')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('amount');
             $invoice->submitdate = //isset($submitteddate[$invoice->id])? $submitteddate[$invoice->id]: 'Not determined'
                                       $this->dao->select('submitdate')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('submitdate');
             $invoice->step = $this->dao->select('step')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('step');
-            $invoice->contractID = $this->dao->select('contractID')->from('zt_invoice')->where('deleted')->eq(0)->andWhere('id')->eq($invoiceID)->fetch('contractID');
+            $invoice->contractName = $this->dao->select('contractName')->from('zt_contract')->where('deleted')->eq(0)->andWhere('id')->eq($invoice->contractID)->fetch('contractName');
+        
+            //$product->stories  = $stories[$product->id];
+            //$product->plans    = isset($plans[$product->id])    ? $plans[$product->id]    : 0;
+            //$product->releases = isset($releases[$product->id]) ? $releases[$product->id] : 0;
+
+            //$product->bugs         = isset($bugs[$product->id]) ? $bugs[$product->id] : 0;
+            //$product->unResolved   = isset($unResolved[$product->id]) ? $unResolved[$product->id] : 0;
+            //$product->assignToNull = isset($assignToNull[$product->id]) ? $assignToNull[$product->id] : 0;
             $stats[] = $invoice;
+            }
         }
   
         return $stats;
     }
+
     public function getApprovalList($id,$type='invoice'){
         $approvals=$this->dao->select('*')->from('zt_approval')->where("objectType")->eq($type)->andWhere("objectID")->eq($id)->fetchALL('order');
         return $approvals;
