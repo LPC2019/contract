@@ -48,7 +48,7 @@
           <tr>
             <th style="vertical-align:top"><?php echo "Invoice Details";?></th>
             <td colspan='2'>
-            <table>
+            <table style='width:100%'>
             <?php
             $itemRow = "
               <tr >

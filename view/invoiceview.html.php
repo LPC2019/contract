@@ -204,7 +204,7 @@
                       
                       <td>
                         <?php if($approval->status!="waiting"):?>
-                         <a href='<?php echo helper::createlink('contracrt','viewApproval',"apID=$approval->id");?>'>View</a></td>
+                         <a href='<?php echo helper::createlink('contract','viewApproval',"apID=$approval->id");?>'>View</a></td>
                           <?php endif; ?>
                     </tr>
                 <?php endforeach;?>

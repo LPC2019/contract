@@ -1279,8 +1279,8 @@ class contractModel extends model
         return $stats;
     }
 
-    public function getApprovalList($id,$type='invoice'){
-        $approvals=$this->dao->select('*')->from('zt_approval')->where("objectType")->eq($type)->andWhere("objectID")->eq($id)->fetchALL('order');
+    public function getApprovalList($id,$type='invoice',$step='0'){
+        $approvals=$this->dao->select('*')->from('zt_approval')->where("objectType")->eq($type)->andWhere("objectID")->eq($id)->andWhere('`order`')->eq($step)->andWhere('status')->eq('waiting')->fetchAll();
         return $approvals;
     }
     public function getApprovalLists($status = 'all', $limit = 0, $line = 0)

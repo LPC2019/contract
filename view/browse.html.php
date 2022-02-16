@@ -34,12 +34,12 @@ $this->app->loadLang('project');
         $class = common::hasPriv('contract', 'export') ? '' : "class=disabled";
         $misc  = common::hasPriv('contract', 'export') ? "class='export'" : "class=disabled";
         $link  = common::hasPriv('contract', 'export') ?  $this->createLink('contract', 'export', "productID=$productID&orderBy=$orderBy&projectID=0&browseType=$browseType") : '#';
-        echo "<li $class>" . html::a($link, $lang->contract->export, '', $misc) . "</li>";
+        echo "<li $class>" . html::a($link, "Export Excel", '', $misc) . "</li>";
         ?>
       </ul>
     </div>
     <?php if(!common::checkNotCN()):?>
-    <?php if(common::hasPriv('contract', 'batchCreate')) echo html::a($this->createLink('contract', 'batchCreate', "productID=$productID&branch=$branch&moduleID=$moduleID"), "<i class='icon icon-plus'></i> {$lang->story->batchCreate}", '', "class='btn btn btn-secondary'");?>
+    <?php if(common::hasPriv('contract', 'batchCreate')) echo html::a($this->createLink('contract', 'batchCreate', "productID=$productID&branch=$branch&moduleID=$moduleID"), "<i class='icon icon-plus'></i> {$lang->contract->batchCreate}", '', "class='btn btn btn-secondary'");?>
     <?php
 
         $link = $this->createLink('contract', 'create', "productID=$productID&branch=$branch&moduleID=$moduleID");
@@ -65,7 +65,7 @@ $this->app->loadLang('project');
         <li <?php echo $disabled?>>
         <?php
           $batchLink = $this->createLink('contract', 'batchCreate', "productID=$productID&branch=$branch&moduleID=$moduleID");
-          echo "<li>" . html::a($batchLink, "<i class='icon icon-plus'></i>" . $lang->story->batchCreate) . "</li>";
+          echo "<li>" . html::a($batchLink, "<i class='icon icon-plus'></i>" . $lang->contract->batchCreate) . "</li>";
         ?>
         </li>
       </ul>
@@ -80,9 +80,9 @@ $this->app->loadLang('project');
     <?php if(empty($contracts)):?>
     <div class="table-empty-tip">
       <p>
-        <span class="text-muted"><?php echo $lang->story->noStory;?></span>
+        <span class="text-muted"><?php echo $lang->contract->noContract;?></span>
         <?php if(common::hasPriv('contract', 'create')):?>
-        <?php echo html::a($this->createLink('contract', 'create', "productID={$productID}&branch={$branch}&moduleID={$moduleID}"), "<i class='icon icon-plus'></i> " . $lang->story->create, '', "class='btn btn-info'");?>
+        <?php echo html::a($this->createLink('contract', 'create', "productID={$productID}&branch={$branch}&moduleID={$moduleID}"), "<i class='icon icon-plus'></i> " . $lang->contract->create, '', "class='btn btn-info'");?>
         <?php endif;?>
       </p>
     </div>
@@ -121,9 +121,8 @@ $this->app->loadLang('project');
       $setting[4]->width="150";
       $setting[5]=$newSetting[7];
       $setting[5]->sort='no';     
-      $setting[6]=$newSetting[10];
+      $setting[6]=$newSetting[32];
 
-      
       $widths  = $this->datatable->setFixedFieldWidth($setting);
       $columns = 0;
 

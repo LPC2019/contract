@@ -69,7 +69,7 @@
           <tr>
             <th style="vertical-align:top"><?php echo "Approval List";?></th>
             <td colspan='2'>
-            <table>
+            <table style="width:50%;">
 
             <?php
             $numArray['1']='1';
