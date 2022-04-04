@@ -162,13 +162,23 @@ class contractModel extends model
      * @access public
      * @return bool
      */
-    public function checkPriv($productID)
+    public function checkPriv($invoiceID)
     {
-        if(empty($productID)) return false;
+
+        if(empty($invoiceID)) return false;
 
         /* Is admin? */
         if($this->app->user->admin) return true;
-        return (strpos(",{$this->app->user->view->products},", ",{$productID},") !== false);
+	$invoice=$this->getByID($invoiceID);
+	$contract=$this->getContractByID($invoice->contractID);
+	$user=$this->app->user->account;
+	$cm= json_decode($contract->contractManager,true);
+	$apseq=$this->dao->select('user')->from('zt_approval')->where('objectType')->eq('contract')->andWhere('objectID')->eq($invoice->contractID)->fetchAll();
+	if($user==$contract->appointedParty||in_array($user,$cm)||in_array($apseq)){
+		return true;
+	}else{
+		return false;
+	}
     }
 
     /**
@@ -385,6 +395,7 @@ class contractModel extends model
             ->remove('ap')
             ->remove('sign')
             ->get();
+	$contract->contractManager=json_encode($contract->contractManager);
         $this->dao->insert("zt_contract")->data($contract)->autoCheck()
             ->check('name', 'unique', "deleted = '0'")
             ->check('code', 'unique', "deleted = '0'")
@@ -1158,6 +1169,39 @@ class contractModel extends model
 	if($this->mail->isError()) trigger_error(join("\n", $this->mail->getError()));
 	echo 'sent';
     }
+    public function notifyCM($invoiceID)
+    {
+        $this->loadModel('mail');
+        $invoice  = $this->getById($invoiceID);
+	$contract=$this->getContractByID($invoice->contractID);
+	$userList=json_decode($contract->contractManager,true);
+        $oldcwd     = getcwd(); // system call
+        //$modulePath = $this->app->getModulePath($appName = '', 'contract');
+        //$viewFile   = $modulePath . 'view/sendapprovenote.html.php';// email content
+        //chdir($modulePath . 'view');
+
+       // if(file_exists($modulePath . 'ext/view/sendapprovenote.html.php'))
+        //{
+        //    $viewFile = $modulePath . 'ext/view/sendapprovenote.html.php';
+       //     chdir($modulePath . 'ext/view');
+       // }
+
+        ob_start();
+        //include $viewFile;
+	echo "testing";
+        $mailContent = ob_get_contents();
+        ob_end_clean();
+
+        chdir($oldcwd);
+        $subject = " invoice #$invoice->id is updated";
+        // Send emails. 
+	foreach($userList as $value){
+        	$this->mail->send($value, $subject, $mailContent,$cclist='',$includeMe=false);
+        }
+	if($this->mail->isError()) trigger_error(join("\n", $this->mail->getError()));
+	echo 'sent';
+    }
+
     /** 2022.1.13
      * Get invoice stat by id
      *
@@ -1168,7 +1212,9 @@ class contractModel extends model
      */
     public function getInvoiceStatByID($invoiceID)
     {
-        if(!$this->checkPriv($invoiceID)) return false;
+        if(!$this->checkPriv($invoiceID)) {
+	return false;
+	}
         $invoice = $this->getById($invoiceID);
     
 
@@ -1384,7 +1430,7 @@ class contractModel extends model
                 }
                 else
                 {
-                    printf('%03d', $story->id);
+                    printf('%03d', $contract->id);
                 }
                 break;
             case 'pri':
@@ -1502,7 +1548,17 @@ class contractModel extends model
                 echo $contract->appointedParty;
                 break;
             case 'contractManager':
-                echo $contract->contractManager;
+		$cm=json_decode($contract->contractManager,true);
+		if($cm!=NULL){
+	                foreach(json_decode($contract->contractManager,true) as $people){
+				echo "$people,";
+			}
+		}else{
+			echo $contract->contractManager;
+		}
+		break;
+            case 'amount':
+                echo $contract->amount;
                 break;
             case 'actions':
                 $vars = "story={$contract->id}";

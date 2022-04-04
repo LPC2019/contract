@@ -191,9 +191,10 @@
                     <tr <?php if($approval->approveDate==NULL && $approval->order==$invoice->step ){ echo "style='background-color:yellow;'"; }?>>
                       <td> <?php echo $approval->order;?></td>
                       <td> <?php echo $approval->user;?></td>
-                      
+
                       <td> 
-                      <?php if($approval->status=="approved"):?>
+                      <?php 
+			if($approval->status=="approved" && $approval->sign=="true"):?>
                         <?php echo "Image".$approval->signature;?> 
                       <?php else: ?>
                         <?php echo "N/A";?>
@@ -201,7 +202,7 @@
                       </td>
                       <td> <?php echo $approval->status;?></td>
                       <td> <?php echo $approval->approveDate;?></td>
-                      
+
                       <td>
                         <?php if($approval->status!="waiting"):?>
                          <a href='<?php echo helper::createlink('contract','viewApproval',"apID=$approval->id");?>'>View</a></td>
@@ -237,7 +238,19 @@
               </tr>
               <tr>
                 <th><?php echo $lang->contract->cm;?></th>
-                <td><?php echo $contract->contractManager;?></td>
+                <td><?php 
+			$cm=json_decode($contract->contractManager,true);
+			if(is_array($cm)){
+
+			foreach($cm as $ppl){
+			//	zget()
+				echo $ppl."</br>";
+			}
+			}else{	echo $contract->contractManager;}
+
+
+		?>
+		</td>
               </tr>
               <tr>
                 <th><?php echo $lang->contract->ap;?></th>

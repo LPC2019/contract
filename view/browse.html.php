@@ -39,6 +39,7 @@ $this->app->loadLang('project');
       </ul>
     </div>
     <?php if(!common::checkNotCN()):?>
+
     <?php if(common::hasPriv('contract', 'batchCreate')) echo html::a($this->createLink('contract', 'batchCreate', "productID=$productID&branch=$branch&moduleID=$moduleID"), "<i class='icon icon-plus'></i> {$lang->contract->batchCreate}", '', "class='btn btn btn-secondary'");?>
     <?php
 
@@ -60,15 +61,17 @@ $this->app->loadLang('project');
           echo html::a($link, "<i class='icon icon-plus'></i> {$lang->contract->create} </span><span class='caret'>", '', "class='btn btn-primary $disabled'");
       
       ?>
-      <ul class='dropdown-menu'>
-        <?php $disabled = common::hasPriv('contract', 'batchCreate') ? '' : "class='disabled'";?>
+    <!--
+	<ul class='dropdown-menu'>
+        <?php $disabled = common::hasPriv('contract', 'batchcreate') ? '' : "class='disabled'";?>
         <li <?php echo $disabled?>>
         <?php
-          $batchLink = $this->createLink('contract', 'batchCreate', "productID=$productID&branch=$branch&moduleID=$moduleID");
+          $batchLink = $this->createLink('contract', 'batchcreate', "productID=$productID&branch=$branch&moduleID=$moduleID");
           echo "<li>" . html::a($batchLink, "<i class='icon icon-plus'></i>" . $lang->contract->batchCreate) . "</li>";
         ?>
         </li>
       </ul>
+-->
     </div>
     <?php endif;?>
   </div>
@@ -103,26 +106,32 @@ $this->app->loadLang('project');
       $setting[1]->title="Contract Name";
       $setting[2]=clone $newSetting[2];
       $setting[2]->order=4;
-      $setting[2]->id="RefNo";
-      $setting[2]->title="Ref.No.";
-      $setting[2]->width="120";
+      $setting[2]->id="amount";
+      $setting[2]->title="Total Budget";
+      $setting[2]->width="100";
       $setting[2]->sort="no";
       $setting[3]=clone $newSetting[2];
-      $setting[3]->order=2;
+      $setting[3]->order=4;
+      $setting[3]->id="RefNo";
+      $setting[3]->title="Ref.No.";
+      $setting[3]->width="120";
       $setting[3]->sort="no";
-      $setting[3]->id="appointedParty";
-      $setting[3]->title="Appointed Party";
-      $setting[3]->width="150";
       $setting[4]=clone $newSetting[2];
       $setting[4]->order=2;
       $setting[4]->sort="no";
-      $setting[4]->id="contractManager";
-      $setting[4]->title="Contract Manager";
+      $setting[4]->id="appointedParty";
+      $setting[4]->title="Appointed Party";
       $setting[4]->width="150";
-      $setting[5]=$newSetting[7];
-      $setting[5]->sort='no';     
-      $setting[6]=$newSetting[32];
-
+      $setting[5]=clone $newSetting[2];
+      $setting[5]->order=2;
+      $setting[5]->sort="no";
+      $setting[5]->id="contractManager";
+      $setting[5]->title="Contract Manager";
+      $setting[5]->width="150";
+      $setting[6]=$newSetting[7];
+      $setting[7]->sort='no';     
+      $setting[7]=end($newSetting);
+      $setting[7]->width="150";
       $widths  = $this->datatable->setFixedFieldWidth($setting);
       $columns = 0;
 

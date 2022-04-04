@@ -59,7 +59,7 @@
           </tr>    
           <tr>
             <th><?php echo "Contract Manager";?></th>
-            <td><?php echo html::select('contractManager', $poUsers, $this->app->user->account, "class='form-control chosen'");?></td><td></td>
+            <td><?php echo html::select('contractManager[]', $poUsers, $this->app->user->account, "class='form-control chosen' multiple");?></td><td></td>
           </tr>
           <tr>
             <th><?php echo "Appointed Party";?></th>

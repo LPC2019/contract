@@ -54,9 +54,7 @@ class contract extends control
         $productID = $this->product->saveState($productID, $this->products);
         $branch    = (int)$this->cookie->preBranch;
         $this->contract->setMenu($this->products, $productID);
-
         if(common::hasPriv('product', 'create')) $this->lang->modulePageActions = html::a($this->createLink('contract', 'create'), "<i class='icon icon-sm icon-plus'></i> " . $this->lang->contract->create, '', "class='btn btn-primary'");
-
         $this->view->title         = $this->lang->product->index;
         $this->view->position[]    = $this->lang->product->index;
         $this->display();
@@ -263,7 +261,7 @@ class contract extends control
         if($this->session->product) $rootID = $this->session->product;
         $this->contract->setMenu($this->products, $rootID);
 
-        $contractOption=$this->dao->select('id,contractName')->from('zt_contract')->where('appointedParty')->eq('admin')->andWhere('status')->eq('normal')->fetchPairs();
+        $contractOption=$this->dao->select('id,contractName')->from('zt_contract')->where('appointedParty')->eq($this->app->user->account)->andWhere('status')->eq('normal')->fetchPairs();
         if(!$contractOption){
             echo js::alert("no contract for you to create a invoice");
             die("<script>history.back()</script>");
@@ -464,9 +462,11 @@ class contract extends control
         $pager = new pager(0, 30, 1);
 
         $this->executeHooks($productID);
+	$cm=json_decode($contract->contractManager,true);
+	$contract->contractManager=$cm==NULL?$contract->contractManager:$cm;
         $this->view->contract=$contract;
         $this->view->contractAP=$contractAP;
-
+	
         $this->view->title      = $contract->contractName . $this->lang->colon . $this->lang->product->view;
         $this->view->product    = $product;
         $this->view->actions    = $this->loadModel('action')->getList('contract', $contractID);
@@ -896,6 +896,7 @@ class contract extends control
     public function approve($invoiceID ='0')
     {
         
+
         if(!$_POST['description']){
             $invoice=$this->contract->getByID($invoiceID);
             $contract=$this->contract->getContractByID($invoice->contractID);
@@ -906,6 +907,7 @@ class contract extends control
             $this->display();
             die();
         }
+
         $ap=$this->dao->select("*")->from(" zt_invoice, zt_approval")
                 ->where('zt_invoice.id')->eq("$invoiceID")
                 ->andWhere('zt_approval.objectID')->eq($invoiceID)
@@ -918,7 +920,6 @@ class contract extends control
             echo "<script>history.back()</script>";
             die();
         }
-        
         $approval=$this->dao->select('*')->from('zt_approval')->where('id')->eq($ap->id)->fetch();
 	
         if(!$approval || $approval->user!=$this->app->user->account){
@@ -957,10 +958,11 @@ class contract extends control
             $invoice->status="approved";
             $invoice->lastEdit=helper::now();
             $this->dao->update('zt_invoice')->data($invoice)->where('id')->eq($invoiceID)->exec();//update sequence
-	    echo js::alert("success");
 	    js::closeModal('parent.parent', 'this');
-         //   $this->contract->notifyCM($approval->objectID,$users);// send mail to next step
-         //   die('finish');
+            $this->contract->notifyCM($invoiceID);// send mail to next step
+	    echo js::alert("success");
+	    die(js::closeModal('parent.parent', 'this'));
+            die('finish');
         }
         $users=array();
         foreach($nextStep as $value){//get next sequence approver
@@ -1024,13 +1026,13 @@ class contract extends control
         $approval->status="rejected";
         $approval->description=$_POST['description'];
         $this->dao->update("zt_approval")->data($approval)->where('id')->eq($approval->id)->exec();      
-        echo js::alert("success");
         
         $invoice=$this->contract->getByID($approval->objectID);
         $invoice->status="rejected";
         $invoice->lastedit= helper::now();
         $this->dao->update("zt_invoice")->data($invoice)->where('id')->eq($invoice->id)->exec();
         echo js::alert("success");
+	//$this->contract->notifyCM($invoice->id);
         js::closeModal('parent.parent', 'this');
 
 
@@ -1203,10 +1205,10 @@ class contract extends control
         $contract=$this->contract->getContractByID($invoice->contractID);
         $asset=$this->loadModel('product')->getByID($contract->assetID);
         $this->contract->setMenu($this->products, $contract->assetID);
-        
+        $contractManager=json_decode($contract->contractManager,true);
 
 
-        if($this->app->user->account!=$contract->contractManager || $this->app->user->account!='admin'){// check user role
+        if(!in_array($this->app->user->account,$contractManager) || $this->app->user->account!='admin'){// check user role
             echo js::alert('You do not have permission to do the payment action');
             $this->send(array('result' => 'fail', 'message' => "You can't do the payment", 'locate' => inlink('invoicelist', "invoice=$invoiceID")));
             die();
@@ -1252,6 +1254,7 @@ class contract extends control
         
         $sc=$this->loadModel('file')->getByObject('invoice',$invoice['id']);
 
+
         $message=array();
         $message['assetName']=$asset->name;
         $message['contract']=array();
@@ -1274,8 +1277,8 @@ class contract extends control
         $message['softcopy']=array_values($sc)['0']->webPath;
         $message['financeData']=$finance;
 
-        var_dump(json_encode($message));
-
+        $this->view->jsonObject=json_encode($message);
+	$this->display();
 
 
 

@@ -72,8 +72,21 @@ table {
                     </tr>
                   <tr>
 
-                    <th><i class="icon icon-person icon-sm"></i> <?php echo $lang->contract->contractManager;?></th>
-                    <td><em><?php echo zget($users, $contract->contractManager);?></em></td>
+                    <th><i class="icon icon-person icon-sm"></i> <?php echo $lang->contract->contractManager;
+			for($i=0;$i<count($contract->contractManager);$i++){
+				echo '</br>';
+			}
+			?></th>
+                    <td><?php
+			 if(is_array($contract->contractManager)){
+			 for($i=0;$i<count($contract->contractManager);$i++){
+				echo "<em>". zget($users, $contract->contractManager[$i])."</em></br>";
+			 }
+			 }else{
+				echo "<em>". zget($users, $contract->contractManager)."</em>";
+			}
+			?>
+		   </td>
                   </tr>
                   <tr>
                     <th><i class="icon icon-person icon-sm"></i> <?php echo $lang->contract->appointedParty;?></th>
@@ -242,7 +255,7 @@ table {
             }*/
             common::printIcon('contract', 'invoiceList', $params, $product);
 
-            if(common::hasPriv("contract",'createInvoice')){
+            if(common::hasPriv("contract",'createInvoice' && $contract->appointedParty==$this->app->user->account)){
               common::printIcon('contract', 'createInvoice', $params, $product);
             }
 

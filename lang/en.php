@@ -198,6 +198,7 @@ $lang->invoice->action      ='Action';
 
 $lang->contract->common ='Contract';
 $lang->contract->create ='Create Contract';
+$lang->contract->batchcreate ='Batch Create';
 $lang->contract->name   ='Contract Name';
 $lang->contract->desc   ="Description";
 $lang->contract->amount ="Total Amount";
